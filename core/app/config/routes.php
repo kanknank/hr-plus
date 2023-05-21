@@ -15,7 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
 header('Access-Control-Allow-Credentials: true');
-
+// header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE'); 
+// header('Access-Control-Allow-Headers: Authorization, Origin, X-Requested-With, Accept, X-PINGOTHER, Content-Type');
 
 $router->get('/api/user', ['\App\Controllers\User', 'get']);
 

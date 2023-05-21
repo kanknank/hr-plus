@@ -2,7 +2,7 @@ import './style.scss'
 import { createApp } from 'vue';
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-import { Quasar, Notify } from 'quasar'
+import { Quasar, Notify, AppFullscreen, Dialog } from 'quasar'
 //import quasarIconSet from 'quasar/icon-set/svg-bootstrap-icons'
 import quasarIconSet from 'quasar/icon-set/svg-mdi-v7'
 
@@ -22,6 +22,7 @@ import AccountHome from './pages/AccountHome.vue'
 import AccountCompanies from './pages/AccountCompanies.vue'
 import AccountCompanyNew from './pages/AccountCompanyNew.vue'
 import AccountCompanyEdit from './pages/AccountCompanyEdit.vue'
+import AccountProfile from './pages/AccountProfile.vue'
 
 
 const routes = [
@@ -31,9 +32,11 @@ const routes = [
     { path: '/auth/forgot', component: AuthForgot, meta: { title: 'Забыли пароль?' } },
 
     { path: '/account', component: AccountHome, meta: { title: 'Личный кабинет' } },
-    { path: '/account/companies', component: AccountCompanies, meta: { title: 'Организации' } },
+    { path: '/account/companies', component: AccountCompanies, meta: { title: 'Все организации' } },
     { path: '/account/company/new', component: AccountCompanyNew, meta: { title: 'Добавить организацию' } },
-    { path: '/account/company/:id(\\d+)/:tab?', component: AccountCompanyEdit, meta: { title: 'Огранизация' } },
+    { path: '/account/company/:id(\\d+)', component: AccountCompanyEdit, meta: { title: 'Огранизация' } },
+
+    { path: '/account/profile', component: AccountProfile, meta: { title: 'Мой профиль' } },
 ]
 
 const router = createRouter({
@@ -53,11 +56,17 @@ const app = createApp(App);
 app.use(router);
 app.use(Quasar, {
     plugins: {
-        Notify
+        Notify,
+        AppFullscreen,
+        Dialog
     },
     config: {
         brand: {
             primary: '#3051d3',
+            secondary: '#25c2e3',
+            positive: '#43d39e',
+            negative: '#ff5c75',
+            dark: '#4B4B5A',
         },
         notify: {}
     },

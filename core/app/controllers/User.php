@@ -10,7 +10,7 @@ class User extends \Zoomx\Controllers\Controller
     public function get()
     {
         $user = $this->modx->user;
-        if (!$user->id) {
+        if (!$this->modx->user->isAuthenticated('web')) {
             return jsonx(['success' => false]);
         }
         

@@ -5,6 +5,6 @@
 
 <template>
     <account-base>
-        <div class="box">Главная страница</div>
+        <div class="box">Profile</div>
     </account-base>
 </template>

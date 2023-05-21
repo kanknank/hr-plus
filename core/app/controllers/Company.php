@@ -46,6 +46,7 @@ class Company extends \Zoomx\Controllers\Controller
 
         return jsonx([
             'success' => $success,
+            'data' => ['id' => $obj->id],
         ]);
     }
 
@@ -55,16 +56,28 @@ class Company extends \Zoomx\Controllers\Controller
      */
     public function list()
     {
+        $select = $this->columns;
+        foreach ($select as &$c) {
+            $c = "Company.{$c}";
+        }
+        $select[] = 'profile.fullname as author';
+
         $q = $this->modx->newQuery('Company');
-        $q->select($this->columns);
+        $q->select($select);
         $q->where([
             'user' => $this->modx->user->id
         ]);
         $q->sortby('createdon', 'DESC');
+        $q->leftJoin('modUserProfile', 'profile', 'profile.internalKey = Company.user');
         $q->prepare();
         $q->stmt->execute();
         $q_result = $q->stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-        
+
+        foreach ($q_result as &$item) {
+            $date = date_create($item['createdon']);
+            $item['date'] = date_format($date, "d.m.Y");
+        }   
+
         return jsonx(['success' => true, 'data' => $q_result]);
     }
 
@@ -86,6 +99,7 @@ class Company extends \Zoomx\Controllers\Controller
         $data = $q_result[0];
 
         if ($data && $data['logo']) {
+            $this->modx->log(1, print_r($data['logo'], 1));
             $data['logo'] = $this->modx->getOption('site_url') . $data['logo'];
         }
         

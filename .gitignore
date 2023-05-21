@@ -12,6 +12,5 @@ node_modules
 
 /html
 
-/_docker/config/*
 /_docker/data/*
 /_docker/logs/*
