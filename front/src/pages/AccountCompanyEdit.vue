@@ -157,25 +157,25 @@
 
         <div class="row q-col-gutter-lg">
             <div class="main-col col-12 col-md-2">
-                <div>
+                <div class="q-mb-lg">
                     <button @click="changeTab('edit')" :class="tab == 'edit' && 'bg-primary text-white'" class="tab-btn box">
                         <q-icon :name="mdiTextBoxOutline" size="2rem"/>
                         <div>Данные<br>о компании</div>
                     </button>
                 </div>
-                <div class="q-mt-lg">
+                <div class="q-mb-lg">
                     <button @click="changeTab('contacts')" :class="tab == 'contacts' && 'bg-primary text-white'" class="tab-btn box">
                         <q-icon :name="mdiAccount" size="2rem"/>
                         <div>Все<br>контакты</div>
                     </button>
                 </div>
-                <div class="q-mt-lg">
+                <div class="q-mb-lg">
                     <button @click="changeTab('logo')" :class="tab == 'logo' && 'bg-primary text-white'" class="tab-btn box">
                         <q-icon :name="mdiFileDocument" size="2rem"/>
                         <div>Загрузить<br>логотип</div>
                     </button>
                 </div>
-                <div class="q-mt-lg">
+                <div class="q-mb-lg">
                     <button @click="changeTab('view')" :class="tab == 'view' && 'bg-primary text-white'" class="tab-btn box">
                         <q-icon :name="mdiEye" size="2rem"/>
                         <div>Просмотр</div>
@@ -190,7 +190,7 @@
 
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in fields">
-                            <div class="col-6">
+                            <div class="col-12 col col-md-6">
                                 <q-input v-model="form[i.name]" outlined :name="i.name" :type="i.type || 'text'" :label="i.label"
                                     :rules="i.rules || null"
                                     :hide-bottom-space="true"
@@ -215,7 +215,7 @@
                     <h2 class="text-h6">Группы в соцсетях и каналы в мессенджерах:</h2>
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in contactsFields">
-                            <div v-if="i.name.startsWith('group_')" class="col-6">
+                            <div v-if="i.name.startsWith('group_')" class="col-12 col col-md-6">
                                 <q-input v-model="contactForm[i.name]" outlined :name="i.name" :label="i.label"/>
                             </div>
                         </template>
@@ -224,7 +224,7 @@
                     <h2 class="text-h6">Мессенджеры:</h2>
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in contactsFields">
-                            <div v-if="i.name.startsWith('msg_')" class="col-6">
+                            <div v-if="i.name.startsWith('msg_')" class="col-12 col col-md-6">
                                 <q-input v-model="contactForm[i.name]" outlined :name="i.name" :label="i.label"/>
                             </div>
                         </template>

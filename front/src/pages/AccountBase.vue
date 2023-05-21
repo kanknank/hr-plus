@@ -187,6 +187,12 @@ const menu = [
     .q-btn-dropdown--simple * + .q-btn-dropdown__arrow {
         font-size: 16px;
     }
+
+    .q-toolbar__title {
+        @media (max-width: 575px) {
+            font-size: 0;
+        }
+    }
 }
 
 .q-item__section--avatar {
@@ -255,6 +261,10 @@ const menu = [
     position: relative;
     margin: -45px 1.5rem 0;
     padding-bottom: 60px;
+
+    // @media (max-width: 575px) {
+    //     margin: -45px 0 0;
+    // }
 }
 
 .box {

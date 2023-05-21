@@ -19,8 +19,8 @@
 <template>
     <div class="auth-base">
         <div class="row">
-            <div class="col-8 bg-grey-3"></div>
-            <div class="auth-base__panel col-4 shadow-up-8">
+            <div class="col-12 col-sm-6 col-md-8 bg-grey-3"></div>
+            <div class="auth-base__panel col-12 col-sm-6 col-md-4 shadow-up-8">
                 <div class="auth-base__form">
                     <div class="q-mb-xl">
                         <h1 class="q-mb-none text-h6">{{ title }}</h1>

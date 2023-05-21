@@ -42,14 +42,16 @@ body {
         padding: 0 0.25em;
         background-color: #fff;
         font-size: 1em;
+        transform: translateY(-22px) scale(0.9) !important;
+        font-weight: 600 !important;
     }
 
-    .q-field--float .q-field__label,
-    .q-field__native:-webkit-autofill + .q-field__label,
-    .q-field__input:-webkit-autofill + .q-field__label {
-        transform: translateY(-22px) scale(0.9);
-        font-weight: 600;
-    }
+    // .q-field--float .q-field__label,
+    // .q-field__native:-webkit-autofill + .q-field__label,
+    // .q-field__input:-webkit-autofill + .q-field__label {
+    //     transform: translateY(-22px) scale(0.9);
+    //     font-weight: 600;
+    // }
 
     .q-field__marginal {
         height: 48px;

@@ -16,15 +16,13 @@ const $q = useQuasar()
 const tableColumns = [
     { name: 'name', label: 'Наименование организации', field: 'name', align: 'left', sortable: true},
     { name: 'inn', label: 'ИНН', field: 'inn', align: 'left', hideFrom: 1200, sortable: false },
-    { name: 'vacancy', label: 'Вакансии', field: 'carbs', align: 'left', hideFrom: 900, sortable: false },
-    { name: 'users', label: 'Пользователи', field: 'users', align: 'left', hideFrom: 900, sortable: false },
-    { name: 'feedback', label: 'Отклики в работе', field: 'feedback', align: 'left', hideFrom: 900, sortable: false },
-    { name: 'action', label: 'Действие', field: 'action', sortable: false },
+    { name: 'vacancy', label: 'Вакансии', field: 'carbs', align: 'center', hideFrom: 900, sortable: false },
+    { name: 'users', label: 'Пользователи', field: 'users', align: 'center', hideFrom: 900, sortable: false },
+    { name: 'feedback', label: 'Отклики в работе', field: 'feedback', align: 'center', hideFrom: 900, sortable: false },
+    { name: 'action', label: 'Действие', field: 'action', hideFrom: 500, sortable: false },
     { name: 'author', label: 'Создатель аккаунта', field: 'author', align: 'left', hideFrom: 1050, sortable: false },
     { name: 'date', label: 'Дата создания', field: 'date', align: 'left', hideFrom: 1300, sortable: false },
 ]
-
-
 
 const visibleColumns = computed(() => {
     const visible = []
@@ -190,7 +188,7 @@ getCompanies()
                         <q-td colspan="100%">
                             <div class="text-left">
                                 <div class="comp-table__hidden">
-                                    <div v-for=" i in hiddenColumns" class="comp-table__hidden-row row justify-between no-wrap">
+                                    <div v-for=" i in hiddenColumns" class="comp-table__hidden-row row justify-between items-center no-wrap">
                                         <div><b>{{ findColumn(i).label }}</b></div>
 
                                         <div>
@@ -218,6 +216,28 @@ getCompanies()
                                                     {{ props.row[i] }}
                                                     <q-tooltip class="bg-dark">Дата создания профиля организации</q-tooltip>
                                                 </q-badge>
+                                            </template>
+
+                                            <template v-else-if="i === 'action'">
+                                                <q-btn-dropdown
+                                                    flat :dropdown-icon="mdiDotsHorizontal" class="text-primary" size="12px"
+                                                    padding="6px" no-icon-animation 
+                                                >
+                                                    <q-list class="comp-table__menu">
+                                                        <q-item :to="`/account/company/${props.row.id}?tab=view`">
+                                                            <q-item-section avatar><q-icon :name="mdiEye" size="14px" color="secondary"/></q-item-section>
+                                                            <q-item-section><q-item-label>Просмотр</q-item-label> </q-item-section>
+                                                        </q-item>
+                                                        <q-item :to="`/account/company/${props.row.id}`">
+                                                            <q-item-section avatar><q-icon :name="mdiPencil" size="14px" color="positive"/></q-item-section>
+                                                            <q-item-section><q-item-label>Редактирование</q-item-label></q-item-section>
+                                                        </q-item>
+                                                        <q-item clickable v-close-popup @click="removeCompany(props.row.id, props.row.name)">
+                                                            <q-item-section avatar><q-icon :name="mdiClose" size="14px" color="negative"/></q-item-section>
+                                                            <q-item-section><q-item-label>Удаление</q-item-label></q-item-section>
+                                                        </q-item>
+                                                    </q-list>
+                                                </q-btn-dropdown>
                                             </template>
 
                                             <template v-else>
@@ -253,6 +273,10 @@ getCompanies()
     td,
     th {
         font-size: 1em !important;
+
+        &:first-child {
+            padding: 0;
+        }
     }
 
     th {
@@ -270,6 +294,7 @@ getCompanies()
 
     &__hidden {
         max-width: min-content;
+        padding-left: 12px;
 
         &-row {
             padding: 0.5rem 0;
@@ -285,12 +310,19 @@ getCompanies()
     }
 
     .q-badge {
-        font-weight: 500;
+        font-weight: 600;
 
         &._light {
             background: #e2e7f1 !important;
             color: #1e2139
         }
+    }
+
+    a {
+        display: inline-block;
+        text-decoration: none;
+        max-width: 240px;
+        white-space: normal;
     }
 }
 </style>
