@@ -2,10 +2,11 @@
     import { ref, onMounted, watch, watchEffect } from 'vue'
     import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router'
     import axios from 'axios'
-    import { useQuasar } from 'quasar'
     import { mdiAccount, mdiTextBoxOutline, mdiFileDocument, mdiEye } from '@quasar/extras/mdi-v6'
     import AccountBase from './AccountBase.vue'
+    import AppInput from '../components/AppInput.vue'
     import AppFilePond from '../components/AppFilePond.vue'
+    import { showSuccess, showError } from '../functions.js'
 
     const props = defineProps({
         createNew: {},
@@ -13,7 +14,6 @@
 
     const route = useRoute()
     const router = useRouter()
-    const $q = useQuasar()
 
     const loading = ref(false)
     const form = ref({
@@ -49,13 +49,10 @@
         axios.post(`company/update`, data, { headers })
             .then((response) => {
                 getCompany()
-                $q.notify({ message: 'Данные сохранены', color: 'positive' })
+                showSuccess('Данные сохранены')
                 router.push(`/account/company/${id.value}?tab=${nextTab.value}`)
             })
-            .catch((error) => {
-                alert('Ошибка')
-                console.log(error);
-            })
+            .catch((error) => showError(error))
     }
 
     const newCompany = function() {
@@ -63,16 +60,13 @@
             .then((response) => {
                 console.log(response.data);
                 if (response.data.success) {
-                    $q.notify({ message: 'Организация создана', color: 'positive' })
+                    showSuccess('Организация создана')
                     router.push(`/account/company/${response.data.data.data.id}?tab=${nextTab.value}`)
                 } else {
-                    alert('Ошибка')
+                    showError()
                 }
             })
-            .catch((error) => {
-                alert('Ошибка')
-                console.log(error);
-            })
+            .catch((error) => showError(error))
     }
 
     const submit = function() {
@@ -95,12 +89,10 @@
                         tab.value = nextTab.value
                     }
                 } else {
-                    alert('Компания не найдена')
+                    showError('компания не найдена')
                 }
             })
-            .catch((error) => {
-                console.log(error);
-            })
+            .catch((error) => showError(error))
     }
 
     onMounted(async () => {
@@ -129,25 +121,25 @@
     })
 
     const fields = [
-        { name: 'name', label: 'Наименование организации', rules: [ val => val && val.length > 0 || 'Заполните это поле'] },
-        { name: 'brand', label: 'Бренд' },
-        { name: 'address', label: 'Адрес организации' },
-        { name: 'phone', label: 'Рабочий телефон', type: 'tel' },
-        { name: 'site', label: 'Сайт организации' },
-        { name: 'email', label: 'E-mail организации', type: 'email' },
-        { name: 'inn', label: 'ИНН' },
-        { name: 'ogrn', label: 'ОГРН' }
+        { field: 'name', name: 'company_name', label: 'Наименование организации', validate: ['required'] },
+        { field: 'brand', label: 'Бренд' },
+        { field: 'address', label: 'Адрес организации' },
+        { field: 'phone', label: 'Рабочий телефон', type: 'tel' },
+        { field: 'site', label: 'Сайт организации' },
+        { field: 'email', label: 'E-mail организации', type: 'email' },
+        { field: 'inn', label: 'ИНН', type: 'number' },
+        { field: 'ogrn', label: 'ОГРН', type: 'number' }
     ]
 
     const contactsFields = [
-        { name: 'group_vk', label: 'ВКонтакте' },
-        { name: 'group_ok', label: 'Одноклассники' },
-        { name: 'group_other', label: 'Другие профили (через запятую)' },
-        { name: 'group_tg', label: 'Телеграм канал' },
-        { name: 'msg_vk', label: 'ВКонтакте' },
-        { name: 'msg_wa', label: 'WhatsApp' },
-        { name: 'msg_skype', label: 'Skype' },
-        { name: 'msg_viber', label: 'Viber' },
+        { field: 'group_vk', label: 'ВКонтакте' },
+        { field: 'group_ok', label: 'Одноклассники' },
+        { field: 'group_other', label: 'Другие профили (через запятую)' },
+        { field: 'group_tg', label: 'Телеграм канал' },
+        { field: 'msg_vk', label: 'ВКонтакте' },
+        { field: 'msg_wa', label: 'WhatsApp' },
+        { field: 'msg_skype', label: 'Skype' },
+        { field: 'msg_viber', label: 'Viber' },
     ]
 </script>
 
@@ -191,11 +183,7 @@
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in fields">
                             <div class="col-12 col col-md-6">
-                                <q-input v-model="form[i.name]" outlined :name="i.name" :type="i.type || 'text'" :label="i.label"
-                                    :rules="i.rules || null"
-                                    :hide-bottom-space="true"
-                                    lazy-rules
-                                />
+                                <app-input v-model="form[i.field]" :opts="i"/>
                             </div>
                         </template>
 
@@ -215,8 +203,8 @@
                     <h2 class="text-h6">Группы в соцсетях и каналы в мессенджерах:</h2>
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in contactsFields">
-                            <div v-if="i.name.startsWith('group_')" class="col-12 col col-md-6">
-                                <q-input v-model="contactForm[i.name]" outlined :name="i.name" :label="i.label"/>
+                            <div v-if="i.field.startsWith('group_')" class="col-12 col col-md-6">
+                                <q-input v-model="contactForm[i.field]" outlined :name="i.field" :label="i.label"/>
                             </div>
                         </template>
                     </div>
@@ -224,8 +212,8 @@
                     <h2 class="text-h6">Мессенджеры:</h2>
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in contactsFields">
-                            <div v-if="i.name.startsWith('msg_')" class="col-12 col col-md-6">
-                                <q-input v-model="contactForm[i.name]" outlined :name="i.name" :label="i.label"/>
+                            <div v-if="i.field.startsWith('msg_')" class="col-12 col col-md-6">
+                                <q-input v-model="contactForm[i.field]" outlined :name="i.field" :label="i.label"/>
                             </div>
                         </template>
                     </div>
@@ -249,21 +237,21 @@
                     <h2 class="text-h6">Общие данные:</h2>
                     <template v-for="i in fields">
                         <p class="">
-                            <b>{{ i.label }}:</b> {{ form[i.name] || '—' }} 
+                            <b>{{ i.label }}:</b> {{ form[i.field] || '—' }} 
                         </p>
                     </template>
 
                     <h2 class="q-mt-lg text-h6">Группы в соцсетях и каналы в мессенджерах:</h2>
                     <template v-for="i in contactsFields">
-                        <p v-if="i.name.startsWith('group_')" class="">
-                            <b>{{ i.label }}:</b> {{ contactForm[i.name] || '—' }} 
+                        <p v-if="i.field.startsWith('group_')" class="">
+                            <b>{{ i.label }}:</b> {{ contactForm[i.field] || '—' }} 
                         </p>
                     </template>
 
                     <h2 class="q-mt-lg text-h6">Мессенджеры:</h2>
                     <template v-for="i in contactsFields">
-                        <p v-if="i.name.startsWith('msg_')" class="">
-                            <b>{{ i.label }}:</b> {{ contactForm[i.name] || '—' }} 
+                        <p v-if="i.field.startsWith('msg_')" class="">
+                            <b>{{ i.label }}:</b> {{ contactForm[i.field] || '—' }} 
                         </p>
                     </template>
                 </div>

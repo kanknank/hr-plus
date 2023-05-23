@@ -3,8 +3,10 @@ import { ref, computed } from 'vue'
 import axios from 'axios'
 import { mdiDotsHorizontal, mdiClose, mdiPencil, mdiEye, mdiPlusCircleOutline, mdiMinusCircleOutline } from '@quasar/extras/mdi-v6'
 import AccountBase from './AccountBase.vue'
+import AppTooltip from '../components/AppTooltip.vue'
 import { useElementSize } from '@vueuse/core'
 import { useQuasar } from 'quasar'
+import { showSuccess, showError } from '../functions.js'
 
 const loading = ref(true)
 const hiddenColumns = ref([])
@@ -19,9 +21,9 @@ const tableColumns = [
     { name: 'vacancy', label: 'Вакансии', field: 'carbs', align: 'center', hideFrom: 900, sortable: false },
     { name: 'users', label: 'Пользователи', field: 'users', align: 'center', hideFrom: 900, sortable: false },
     { name: 'feedback', label: 'Отклики в работе', field: 'feedback', align: 'center', hideFrom: 900, sortable: false },
-    { name: 'action', label: 'Действие', field: 'action', hideFrom: 500, sortable: false },
     { name: 'author', label: 'Создатель аккаунта', field: 'author', align: 'left', hideFrom: 1050, sortable: false },
     { name: 'date', label: 'Дата создания', field: 'date', align: 'left', hideFrom: 1300, sortable: false },
+    { name: 'action', label: 'Действие', field: 'action', hideFrom: 400, sortable: false },
 ]
 
 const visibleColumns = computed(() => {
@@ -47,10 +49,7 @@ const getCompanies = function(name) {
             rows.value = response.data.data.data
             console.log(response.data.data.data)
         })
-        .catch((error) => {
-            $q.notify({ message: error, color: 'negative' })
-            console.log(error);
-        })
+        .catch((error) => showError(error))
         .finally(() => loading.value = false)
 }
 
@@ -69,16 +68,12 @@ const removeCompany = function(id, name) {
                 console.log(response.data)
                 if (response.data.data.success) {
                     getCompanies()
-                    $q.notify({ message: 'Компания удалена', color: 'positive' })
+                    showSuccess('Компания удалена')
                 } else {
-                    console.log(response.data.data.message)
-                    $q.notify({ message: response.data.data.message, color: 'negative' })
+                    showError(response.data.data.message)
                 }
             })
-            .catch((error) => {
-                console.log(error);
-                $q.notify({ message: error, color: 'negative' })
-            })
+            .catch((error) => showError(error))
     })
 }
 
@@ -126,20 +121,20 @@ getCompanies()
                             <template v-if="col.name === 'name'">
                                 <router-link :to="`/account/company/${props.row.id}`" class="text-primary">
                                     <b>{{ props.row.name }}</b>
-                                    <q-tooltip class="bg-dark">Вся информация об организации</q-tooltip>
+                                    <app-tooltip>Вся информация об организации</app-tooltip>
                                 </router-link>
                             </template>
 
                             <template v-else-if="col.name === 'vacancy'">
-                                <q-badge color="positive">0<q-tooltip class="bg-dark">Посмотреть все вакансии организации</q-tooltip></q-badge>
+                                <q-badge color="positive">0<app-tooltip class="bg-dark">Посмотреть все вакансии организации</app-tooltip></q-badge>
                             </template>
 
                             <template v-else-if="col.name === 'users'">
-                                <q-badge color="negative">0<q-tooltip class="bg-dark">Пригласить специалиста в организацию</q-tooltip></q-badge>
+                                <q-badge color="negative">0<app-tooltip class="bg-dark">Пригласить специалиста в организацию</app-tooltip></q-badge>
                             </template>
 
                             <template v-else-if="col.name === 'feedback'">
-                                <q-badge color="negative">0<q-tooltip class="bg-dark">Нет откликов на вакансии организации</q-tooltip></q-badge>
+                                <q-badge color="negative">0<app-tooltip class="bg-dark">Нет откликов на вакансии организации</app-tooltip></q-badge>
                             </template>
                             
                             <template v-else-if="col.name === 'action'">
@@ -167,14 +162,14 @@ getCompanies()
                             <template v-else-if="col.name === 'author'">
                                 <q-badge color="positive">
                                     {{ col.value || '—' }}
-                                    <q-tooltip class="bg-dark">Личная страница создателя аккаунта</q-tooltip>
+                                    <app-tooltip class="bg-dark">Личная страница создателя аккаунта</app-tooltip>
                                 </q-badge>
                             </template>
 
                             <template v-else-if="col.name === 'date'">
                                 <q-badge class="_light">
                                     {{ col.value }}
-                                    <q-tooltip class="bg-dark">Дата создания профиля организации</q-tooltip>
+                                    <app-tooltip class="bg-dark">Дата создания профиля организации</app-tooltip>
                                 </q-badge>
                             </template>
 
@@ -193,28 +188,28 @@ getCompanies()
 
                                         <div>
                                             <template v-if="i === 'vacancy'">
-                                                <q-badge color="positive">0<q-tooltip class="bg-dark">Посмотреть все вакансии организации</q-tooltip></q-badge>
+                                                <q-badge color="positive">0<app-tooltip class="bg-dark">Посмотреть все вакансии организации</app-tooltip></q-badge>
                                             </template>
 
                                             <template v-else-if="i === 'users'">
-                                                <q-badge color="negative">0<q-tooltip class="bg-dark">Пригласить специалиста в организацию</q-tooltip></q-badge>
+                                                <q-badge color="negative">0<app-tooltip class="bg-dark">Пригласить специалиста в организацию</app-tooltip></q-badge>
                                             </template>
 
                                             <template v-else-if="i === 'feedback'">
-                                                <q-badge color="negative">0<q-tooltip class="bg-dark">Нет откликов на вакансии организации</q-tooltip></q-badge>
+                                                <q-badge color="negative">0<app-tooltip class="bg-dark">Нет откликов на вакансии организации</app-tooltip></q-badge>
                                             </template>
 
                                             <template v-else-if="i === 'author'">
                                                 <q-badge color="positive">
                                                     {{ props.row[i] || '—' }}
-                                                    <q-tooltip class="bg-dark">Личная страница создателя аккаунта</q-tooltip>
+                                                    <app-tooltip class="bg-dark">Личная страница создателя аккаунта</app-tooltip>
                                                 </q-badge>
                                             </template>
 
                                             <template v-else-if="i === 'date'">
                                                 <q-badge class="_light">
                                                     {{ props.row[i] }}
-                                                    <q-tooltip class="bg-dark">Дата создания профиля организации</q-tooltip>
+                                                    <app-tooltip class="bg-dark">Дата создания профиля организации</app-tooltip>
                                                 </q-badge>
                                             </template>
 

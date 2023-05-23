@@ -4,10 +4,7 @@ import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 import { mdiMenuDown, mdiMenu, mdiFullscreen,  mdiFullscreenExit, mdiAccountOutline, mdiAccountDetails, mdiExitToApp, mdiChevronRight, mdiChevronDown } from '@quasar/extras/mdi-v6'
 import { useQuasar } from 'quasar'
-
-// const state = reactive({ counter: 0 })
-// console.log(state)
-// state.counter = state.counter++
+import { showSuccess, showError } from '../functions.js'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -26,7 +23,7 @@ const logout = function () {
             }
         })
         .catch((error) => {
-            console.log(error);
+            showError(error)
             delete sessionStorage.user
         })
 }
@@ -55,7 +52,7 @@ onMounted(async () => {
                 }
             })
             .catch((error) => {
-                console.log(error);
+                showError(error)
                 router.push(`/auth/login`)
             })
             .finally(() => {

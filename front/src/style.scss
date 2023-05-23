@@ -5,6 +5,16 @@ input:-webkit-autofill:active {
     box-shadow: inset 0 0 0 999px rgb(255, 255, 255);
 }
 
+::-webkit-outer-spin-button,
+::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+[type=number] {
+    appearance: textfield;
+}
+
 :root {
     --color-text: #4B4B5A;
 }
