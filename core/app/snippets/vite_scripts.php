@@ -12,3 +12,4 @@ foreach ($files as $file) {
     }
 }
 
+return null;
