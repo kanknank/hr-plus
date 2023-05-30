@@ -99,7 +99,6 @@ class Company extends \Zoomx\Controllers\Controller
         $data = $q_result[0];
 
         if ($data && $data['logo']) {
-            $this->modx->log(1, print_r($data['logo'], 1));
             $data['logo'] = $this->modx->getOption('site_url') . $data['logo'];
         }
         
@@ -132,12 +131,13 @@ class Company extends \Zoomx\Controllers\Controller
         }
 
         if ($_FILES && $_FILES["logo"]["error"] === UPLOAD_ERR_OK) {
-            $path = "assets/site/company/{$_POST['id']}";
+            $path = "assets/userfiles/{$this->modx->user->id}";
             if (!file_exists(MODX_BASE_PATH . $path)) {
                 mkdir($path, 0777, true);
             }
+            $time = time();
             $path_info = pathinfo($_FILES["logo"]["name"]);
-            $file = "{$path}/logo.{$path_info['extension']}";
+            $file = "{$path}/company-{$_POST['id']}-{$time}.{$path_info['extension']}";
             move_uploaded_file($_FILES["logo"]["tmp_name"], MODX_BASE_PATH . $file);
             $obj->set('logo', $file);
         }

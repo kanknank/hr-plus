@@ -59,7 +59,7 @@ class Auth extends \Zoomx\Controllers\Controller
         }
 
         $data = [
-            "active" => 1, //пока без подтверждения
+            "active" => 0,
             'username' => $email,
             'email' => $email,
             'phone' => trim($_POST['phone'] ?? ''),
@@ -115,36 +115,23 @@ class Auth extends \Zoomx\Controllers\Controller
     public function confirm_register()
     {
         if (empty($_GET['key']) || empty($_GET['user'])) {
-            return jsonx([
-                'success' => false,
-                'message' => 'Неверная ссылка',
-            ]);
+            return redirectx('/#/auth/error?error=activate-link&code=1');
         }
 
         $user = $this->modx->getObject('modUser', ['username' => $_GET['user']]);
         if (!$user) {
-            return jsonx([
-                'success' => false,
-                'message' => 'Пользователь не найден',
-            ]);
+            return redirectx('/#/auth/error?error=activate-link&code=2');
         }
 
         $confirm_key = md5($user->username . ':' .$user->password);
         if ($confirm_key !== $_GET['key']) {
-            return jsonx([
-                'success' => false,
-                'message' => 'Неверный ключ',
-            ]);
+            return redirectx('/#/auth/error?error=activate-link&code=3');
         }
 
         $user->set('active', 1);
         $user->save();
 
-        redirectx('/?from=confirm-register');
-        // return jsonx([
-        //     'success' => true,
-        //     'message' => 'ok',
-        // ]);
+        return redirectx('/#/auth/login?from=confirm-register');
     }
 
 
@@ -206,18 +193,12 @@ class Auth extends \Zoomx\Controllers\Controller
             || empty($_SESSION['new_password_email'])
             || $_GET['key'] !== $_SESSION['new_password_key']
         ) {
-            return jsonx([
-                'success' => false,
-                'message' => 'wrong link',
-            ]);
+            return redirectx('/#/auth/error?error=reset-link&code=1');
         }
 
         $profile = $this->modx->getObject('modUserProfile', ['email' => $_SESSION['new_password_email']]);
         if (!$profile) {
-            return jsonx([
-                'success' => false,
-                'message' => 'Пользователь с таким email не зарегистрирован на сайте',
-            ]);
+            return redirectx('/#/auth/error?error=reset-link&code=2');
         }
 
         $user = $this->modx->getObject('modUser', $profile->internalKey);
@@ -228,7 +209,7 @@ class Auth extends \Zoomx\Controllers\Controller
 
         unset($_SESSION['new_password'], $_SESSION['new_password_key'], $_SESSION['new_password_email']);
 
-        redirectx('/?from=reset-password');
+        return redirectx('/#/auth/login?from=reset-password');
         // return jsonx([
         //     'success' => true,
         //     'message' => 'ок ' . $user->username,

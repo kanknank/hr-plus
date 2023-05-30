@@ -59,9 +59,9 @@
             <template v-else>
                 <p class="text-body1">{{ successMessage }}</p>
 
-                <div class="text-center">
+                <!-- <div class="text-center">
                     <q-btn label="Войти" to="/auth/login" color="primary" class="full-width"/>
-                </div>
+                </div> -->
             </template>
         </q-form>
     </auth-base>

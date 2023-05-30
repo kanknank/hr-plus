@@ -1,15 +1,3 @@
-{$fields = [
-	'Имя' => $fullname|default:('fullname'|user),
-	'Телефон' => $phone|default:('phone'|user),
-	'Email' => $email|default:('email'|user),
-	'Город' => $city|default:('city'|user),
-	'Комментарий' => $comment,
-	'Сообщение' => $message
-]}
-{$page = $modx->makeUrl('id'|resource, '', '', 0)}
-{$css_cell = 'style="border-bottom-width: 1px; border-bottom-color: #ccc; border-bottom-style: solid;"'}
-
-
 <!doctype html>
 <html lang="ru">
 <head>

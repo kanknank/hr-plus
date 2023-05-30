@@ -13,6 +13,7 @@ const loading = ref(true)
 const title = ref('')
 const user = ref({})
 const year = new Date().getFullYear()
+const siteUrl = import.meta.env.VITE_API_URL
 
 const logout = function () {
     axios.get('auth/logout')
@@ -71,6 +72,8 @@ function toggleLeftDrawer () {
 const menu = [
     {
         label: 'Организации',
+        icon: mdiAccountDetails,
+        childPath: '/compan',
         children: [
             {
                 to: '/account/companies',
@@ -81,15 +84,24 @@ const menu = [
                 label: 'Добавить новую организацию',
             },
         ]
+    },
+    {
+        label: 'Пользователь',
+        icon: mdiAccountDetails,
+        childPath: '/profile',
+        children: [
+            {
+                to: '/account/profile',
+                label: 'Личный кабинет',
+            },
+        ]
     }
 ]
 </script>
 
 <template>
     <q-layout view="lHh Lpr lff">
-
         <!-- <q-inner-loading :showing="loading" color="primary" size="128px" class="_main"/> -->
-
         <q-header>
             <q-toolbar>
                 <q-btn flat dense round @click="toggleLeftDrawer" :icon="mdiMenu" size="16px"/>
@@ -106,7 +118,10 @@ const menu = [
                 <q-btn-dropdown stretch flat :dropdown-icon="mdiChevronDown" class="text-lowercase">
                     <template v-slot:label>
                         <div class="row items-center no-wrap q-gutter-x-sm">
-                            <q-avatar size="32px" color="white" text-color="primary">A</q-avatar>
+                            <q-avatar size="32px" color="white" text-color="primary">
+                                <img v-if="user.photo" :src="siteUrl + user.photo" alt="">
+                                <span v-else>{{ user.email?.[0] }}</span>
+                            </q-avatar>
                             <div>{{ user.email }}</div>
                         </div>
                     </template>
@@ -133,17 +148,25 @@ const menu = [
             </q-toolbar>
         </q-header>
 
+        
         <q-drawer v-model="leftDrawerOpen" show-if-above :width="250" bordered>
-            <q-tree :nodes="menu" node-key="label" default-expand-all no-connectors :icon="mdiChevronRight"
-                v-model:expanded="expandedTree">
-                <template v-slot:default-header="prop">
-                    <router-link v-if="prop.node.to" :to="prop.node.to">{{ prop.node.label }}</router-link>
-                    <div v-else>
-                        <q-icon :name="mdiAccountDetails" class="" />
-                        {{ prop.node.label }}
-                    </div>
-                </template>
-            </q-tree>
+            <div class="sidebar-menu">
+                <q-expansion-item 
+                    v-for="item in menu"
+                    :icon="item.icon"
+                    :label="item.label"
+                    :default-opened="route.path.includes(item.childPath)"
+                >
+                    <q-list>
+                        <q-item
+                            v-for="child in item.children"
+                            :to="child.to"
+                        >
+                            <q-item-section><q-item-label>{{ child.label }}</q-item-label></q-item-section>
+                        </q-item>
+                    </q-list>
+                </q-expansion-item>
+            </div>
         </q-drawer>
 
         <q-page-container>
@@ -196,58 +219,12 @@ const menu = [
     min-width: 0;
 }
 
-.q-tree {
-    color: inherit;
-
-    &__node-header {
-        flex-direction: row-reverse;
-        padding: 12px 30px;
-        font-size: 15px;
-        border-left: 3px solid transparent;
-
-        &-content {
-            color: inherit;
-
-            a {
-                text-decoration: none;
-                color: inherit;
-
-                &.router-link-active {
-                    color: var(--q-primary);
-                }
-            }
-
-            & .q-icon {
-                width: 16px;
-                height: 16px;
-                margin: 0 10px 0 3px;
-
-                & svg {
-                    stroke: inherit;
-                    color: inherit;
-                }
-            }
-        }
-    }
-
-    &__node--child {
-        padding: 8px 20px;
-
-        div {
-            padding: 0;
-            font-size: 1em;
-            margin: 0;
-            border: none;
-        }
-    }
-
-    &__children {
-        padding-left: 45px;
-    }
-}
-
 .acc-subheader {
-    padding: 1.5rem 1.5rem 6.5rem;
+    padding: 0.5rem 1.5rem 2rem;
+
+    @media (min-width: 1024px) {
+        padding: 1.5rem 1.5rem 6.5rem;
+    }
 
     h1 {
         margin: 0;
@@ -256,12 +233,12 @@ const menu = [
 
 .acc-main {
     position: relative;
-    margin: -45px 1.5rem 0;
+    margin: 0 1.5rem 0;
     padding-bottom: 60px;
 
-    // @media (max-width: 575px) {
-    //     margin: -45px 0 0;
-    // }
+    @media (min-width: 1024px) {
+        margin: -45px 1.5rem 0;
+    }
 }
 
 .box {

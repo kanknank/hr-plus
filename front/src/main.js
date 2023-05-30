@@ -3,21 +3,21 @@ import { createApp } from 'vue';
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import { Quasar, Notify, AppFullscreen, Dialog } from 'quasar'
-//import quasarIconSet from 'quasar/icon-set/svg-bootstrap-icons'
+import langRu from 'quasar/lang/ru'
 import quasarIconSet from 'quasar/icon-set/svg-mdi-v7'
-
-//import '@quasar/extras/bootstrap-icons/bootstrap-icons.css'
 import 'quasar/dist/quasar.css'
 
 import axios from 'axios'
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
-axios.defaults.baseURL = import.meta.env.VITE_API_URL;
+axios.defaults.baseURL = import.meta.env.VITE_API_URL + 'api';
 
 import App from './App.vue'
 import AuthLogin from './pages/AuthLogin.vue'
 import AuthRegister from './pages/AuthRegister.vue'
 import AuthForgot from './pages/AuthForgot.vue'
+import AuthError from './pages/AuthError.vue'
+
 import AccountHome from './pages/AccountHome.vue'
 import AccountCompanies from './pages/AccountCompanies.vue'
 import AccountCompanyNew from './pages/AccountCompanyNew.vue'
@@ -30,6 +30,7 @@ const routes = [
     { path: '/auth/login', component: AuthLogin, meta: { title: 'Вход' } },
     { path: '/auth/register', component: AuthRegister, meta: { title: 'Регистрация' } },
     { path: '/auth/forgot', component: AuthForgot, meta: { title: 'Забыли пароль?' } },
+    { path: '/auth/error', component: AuthError, meta: { title: 'Ошибка' } },
 
     { path: '/account', component: AccountHome, meta: { title: 'Личный кабинет' } },
     { path: '/account/companies', component: AccountCompanies, meta: { title: 'Все организации' } },
@@ -55,6 +56,7 @@ router.beforeEach((to, from, next) => {
 const app = createApp(App);
 app.use(router);
 app.use(Quasar, {
+    lang: langRu,
     plugins: {
         Notify,
         AppFullscreen,

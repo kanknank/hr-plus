@@ -33,6 +33,11 @@ $router->post('/api/company/list', ['\App\Controllers\Company', 'list']);
 $router->post('/api/company/update', ['\App\Controllers\Company', 'update']);
 $router->post('/api/company/delete', ['\App\Controllers\Company', 'delete']);
 
+$router->get('/api/profile', ['\App\Controllers\Profile', 'get']);
+$router->post('/api/profile/update', ['\App\Controllers\Profile', 'update']);
+$router->post('/api/profile/change_password', ['\App\Controllers\Profile', 'change_password']);
+
+
 $router->get('/', function() use ($modx) {
     return viewx("base.tpl");
 });

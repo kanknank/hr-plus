@@ -16,11 +16,12 @@
     const router = useRouter()
 
     const loading = ref(false)
+    const formEl = ref(null)
     const form = ref({
         description: ''
     })
     const contactForm = ref({})
-    const formEl = ref(null)
+    const formChanged = ref(false)
     const id = ref(0)
     const myFiles = ref([])
     const nextTab = ref(null)
@@ -48,18 +49,24 @@
 
         axios.post(`company/update`, data, { headers })
             .then((response) => {
-                getCompany()
-                showSuccess('Данные сохранены')
-                router.push(`/account/company/${id.value}?tab=${nextTab.value}`)
+                if (response.data?.data?.success) {
+                    getCompany()
+                    showSuccess('Данные сохранены')
+                    formChanged.value = false
+                    router.push(`/account/company/${id.value}?tab=${nextTab.value}`)
+                } else {
+                    showError()
+                }
             })
             .catch((error) => showError(error))
     }
 
     const newCompany = function() {
+        loading.value = true;
+        
         axios.post(`company/new`, form.value)
             .then((response) => {
-                console.log(response.data);
-                if (response.data.success) {
+                if (response.data?.data?.success) {
                     showSuccess('Организация создана')
                     router.push(`/account/company/${response.data.data.data.id}?tab=${nextTab.value}`)
                 } else {
@@ -104,8 +111,11 @@
 
     const changeTab = function(to) {
         nextTab.value = to
-        if (formEl.value) {
-            formEl.value.submit()
+
+        if (tab.value == 'logo' && pond.value.getFile()) {
+            formEl.value && formEl.value.submit()
+        } else if ((tab.value == 'edit' || tab.value == 'contacts') && (formChanged.value || props.createNew)) {
+            formEl.value && formEl.value.submit()
         } else {
             tab.value = nextTab.value
             router.push(`/account/company/${id.value}?tab=${nextTab.value}`)
@@ -141,61 +151,49 @@
         { field: 'msg_skype', label: 'Skype' },
         { field: 'msg_viber', label: 'Viber' },
     ]
+
+    const tabs = [
+        { name: 'edit', label: 'Данные<br>о компании', icon: mdiTextBoxOutline },
+        { name: 'contacts', label: 'Все<br>контакты', icon: mdiAccount },
+        { name: 'logo', label: 'Загрузить<br>логотип', icon: mdiFileDocument },
+        { name: 'view', label: 'Просмотр', icon: mdiEye },
+    ]
 </script>
 
 <template>
     <account-base>
-        <q-inner-loading :showing="loading" color="primary"/>
-
-        <div class="row q-col-gutter-lg">
-            <div class="main-col col-12 col-md-2">
-                <div class="q-mb-lg">
-                    <button @click="changeTab('edit')" :class="tab == 'edit' && 'bg-primary text-white'" class="tab-btn box">
-                        <q-icon :name="mdiTextBoxOutline" size="2rem"/>
-                        <div>Данные<br>о компании</div>
-                    </button>
-                </div>
-                <div class="q-mb-lg">
-                    <button @click="changeTab('contacts')" :class="tab == 'contacts' && 'bg-primary text-white'" class="tab-btn box">
-                        <q-icon :name="mdiAccount" size="2rem"/>
-                        <div>Все<br>контакты</div>
-                    </button>
-                </div>
-                <div class="q-mb-lg">
-                    <button @click="changeTab('logo')" :class="tab == 'logo' && 'bg-primary text-white'" class="tab-btn box">
-                        <q-icon :name="mdiFileDocument" size="2rem"/>
-                        <div>Загрузить<br>логотип</div>
-                    </button>
-                </div>
-                <div class="q-mb-lg">
-                    <button @click="changeTab('view')" :class="tab == 'view' && 'bg-primary text-white'" class="tab-btn box">
-                        <q-icon :name="mdiEye" size="2rem"/>
-                        <div>Просмотр</div>
-                    </button>
+        <div class="layout-vtabs">
+            <div class="">
+                <div class="vtabs">
+                    <q-tabs>
+                        <template v-for="t in tabs">
+                            <q-tab @click="changeTab(t.name)" :class="tab == t.name && '_active'" :icon="t.icon">
+                                <span v-html="t.label"></span>
+                            </q-tab>
+                        </template>
+                    </q-tabs>
                 </div>
             </div>
 
             <!--  -->
-            <div class="main-col col-12 col-md-10">
+            <div class="">
+                <q-inner-loading :showing="loading" color="primary"/>
+
                 <q-form v-if="tab == 'edit'" @submit="submit" ref="formEl" class="box">
                     <h2 class="text-h6">Введите общие данные организации:</h2>
 
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in fields">
                             <div class="col-12 col col-md-6">
-                                <app-input v-model="form[i.field]" :opts="i"/>
+                                <app-input v-model="form[i.field]" :opts="i" @update:model-value="formChanged = true"/>
                             </div>
                         </template>
-
-                        <div class="col-12">
-                            <p>Описание организации</p>
-                            <q-editor v-model="form.description" min-height="5rem" />
-                        </div>
-
                         <!-- <div class="col-12">
                             <q-btn label="Сохранить" type="submit" color="primary"/>
                         </div> -->
                     </div>
+                    <p class="q-mt-lg q-mb-sm">Описание организации</p>
+                    <q-editor v-model="form.description" @update:model-value="formChanged = true" min-height="5rem" />
                 </q-form>
 
                 <!--  -->
@@ -204,7 +202,7 @@
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in contactsFields">
                             <div v-if="i.field.startsWith('group_')" class="col-12 col col-md-6">
-                                <q-input v-model="contactForm[i.field]" outlined :name="i.field" :label="i.label"/>
+                                <app-input v-model="contactForm[i.field]" :opts="i" @update:model-value="formChanged = true"/>
                             </div>
                         </template>
                     </div>
@@ -213,7 +211,7 @@
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in contactsFields">
                             <div v-if="i.field.startsWith('msg_')" class="col-12 col col-md-6">
-                                <q-input v-model="contactForm[i.field]" outlined :name="i.field" :label="i.label"/>
+                                <app-input v-model="contactForm[i.field]" :opts="i" @update:model-value="formChanged = true"/>
                             </div>
                         </template>
                     </div>
@@ -222,15 +220,12 @@
                 <!-- Лого -->
                 <q-form v-if="tab == 'logo'" @submit="submit" ref="formEl" class="box "  action="">
                     <h2 class="text-h6">Загрузить логотип организации:</h2>
-                    <app-file-pond
-                        :files="myFiles"
-                        ref="pond"
-                    />
+                    <app-file-pond :files="myFiles" ref="pond" label="загрузить логотип"/>
                 </q-form>
 
                 <!-- Просмотр  -->
                 <div v-if="tab == 'view'" class="box">
-                    <div>
+                    <div v-if="form.logo">
                         <img width="160" :src="form.logo" alt="">
                     </div>
 
@@ -240,6 +235,7 @@
                             <b>{{ i.label }}:</b> {{ form[i.field] || '—' }} 
                         </p>
                     </template>
+                    <p><b>Описание организации:</b><div v-html="form.description"></div></p>
 
                     <h2 class="q-mt-lg text-h6">Группы в соцсетях и каналы в мессенджерах:</h2>
                     <template v-for="i in contactsFields">
@@ -279,27 +275,3 @@
         </div>
     </account-base>
 </template>
-
-<style lang="scss" scoped>
-    .main-col {
-        padding-top: 0;
-    }
-    .tab-btn {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding-top: 32px;
-        padding-bottom: 32px;
-        width: 100%;
-        border: none;
-        box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.1);
-        text-align: center;
-        color: #505d69;
-        cursor: pointer;
-
-        .q-icon {
-            margin-bottom: 8px;
-        }
-    }
-</style>

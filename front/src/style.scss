@@ -56,6 +56,11 @@ body {
         font-weight: 600 !important;
     }
 
+    ._required .q-field__label::after {
+        content: ' *';
+        color: var(--q-negative);
+    }
+
     // .q-field--float .q-field__label,
     // .q-field__native:-webkit-autofill + .q-field__label,
     // .q-field__input:-webkit-autofill + .q-field__label {
@@ -83,12 +88,119 @@ body {
 
 
     .q-inner-loading {
-        z-index: 9999;
+        z-index: 999;
+    }
 
-        &._main ~ * {
-            opacity: 0 !important;
+
+    .q-avatar img:not(.q-icon):not(.q-img__image) {
+        object-fit: cover;
+    }
+}
+
+
+.layout-vtabs {
+    > * {
+        position: relative;
+    }
+
+    @media (min-width: 1024px) {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 24px;
+    }
+
+    @media (min-width: 1200px) {
+        grid-template-columns: 2fr 10fr;
+    }
+}
+
+
+.vtabs {
+    .q-tab {
+        padding-top: 8px;
+        padding-bottom: 8px;
+        text-transform: none;
+    }
+
+    .q-tab._active {
+        pointer-events: none;
+    }
+
+    .q-tab__icon {
+        margin-bottom: 4px;
+    }
+
+    ._active .q-tab__indicator {
+        opacity: 1;
+    }
+
+    @media (min-width: 1024px) {
+        .q-tabs__content {
+            display: grid;
+            gap: 24px;
+            overflow: visible;
+        }
+
+        .q-tab {
+            position: relative;
+            padding: 28px 20px;
+            background-color: #fff;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.1);
+            opacity: 1;
+        }
+
+        .q-tab._active {
+            color: #fff;
+            background: var(--q-primary);
+        }
+
+        .q-tab__indicator {
+            display: none !important;
+        }
+
+        .q-tab__icon {
+            margin-bottom: 8px;
+            width: 32px;
+            height: 32px;
+        }
+    }
+}
+
+
+.sidebar-menu {
+    .q-icon {
+        font-size: 16px !important;
+    }
+
+    .q-expansion-item__toggle-icon:not(.q-expansion-item__toggle-icon--rotated) {
+        transform: rotate(270deg);
+    }
+
+    div.q-item {
+        padding-right: 32px;
+        padding-left: 32px;
+        font-size: 15px;
+    }
+
+    .q-expansion-item--expanded div.q-item {
+        box-shadow: inset 6px 0 0 -3px var(--q-primary);
+        color: var(--q-primary);
+
+        & > .q-focus-helper {
+            opacity: 0.075;
+            background-color: currentColor;
+        }
+    }
+
+    a.q-item {
+        padding: 8px 20px;
+        padding-left: 64px;
+        min-height: 0;
+    
+        .q-item__label {
+            line-height: 1.5 !important;
         }
     }
 
 }
-
