@@ -32,9 +32,13 @@
                 getProfile()
                 showSuccess('Данные сохранены')
                 formChanged.value = false
-                router.push(`/account/profile/?tab=${nextTab.value}`)
+                if (nextTab.value) {
+                    tab.value = nextTab.value
+                }
+                router.push(`/account/profile?tab=${nextTab.value}`)
             })
             .catch((error) => showError(error))
+            .finally(() => loading.value = false)
     }
 
     const uploadFile = function() {
@@ -52,9 +56,13 @@
             .then((response) => {
                 delete sessionStorage.user
                 showSuccess('Аватар сохранён')
+                if (nextTab.value) {
+                    tab.value = nextTab.value
+                }
                 router.push(`/account/profile/?tab=${nextTab.value}`)
             })
             .catch((error) => showError(error))
+            .finally(() => loading.value = false)
     }
 
     const changePassword = function() {
@@ -63,9 +71,11 @@
         axios.post(`profile/change_password`, passwordForm.value)
             .then((response) => {
                 console.log(response.data.data)
-                passwordFormErrors.value = response.data.data.errors || {}
-                if (response.data.data.success) {
+                passwordFormErrors.value = response.data?.data?.errors || {}
+                if (response.data?.data?.success) {
                     showSuccess('Пароль изменён')
+                } else {
+                    showError()
                 }
             })
             .catch((error) => showError(error))
@@ -77,14 +87,10 @@
 
         axios.get(`profile`)
             .then((response) => {
-                if (response.data.data.success) {
+                if (response.data?.data?.success) {
                     form.value = response.data.data.data
                     form.value.description = form.value.description || ''
                     myFiles.value = response.data.data.data.photo ? [response.data.data.data.photo] : []
-
-                    if (nextTab.value) {
-                        tab.value = nextTab.value
-                    }
                 } else {
                     showError()
                 }

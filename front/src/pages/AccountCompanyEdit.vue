@@ -53,12 +53,16 @@
                     getCompany()
                     showSuccess('Данные сохранены')
                     formChanged.value = false
+                    if (nextTab.value) {
+                        tab.value = nextTab.value
+                    }
                     router.push(`/account/company/${id.value}?tab=${nextTab.value}`)
                 } else {
                     showError()
                 }
             })
             .catch((error) => showError(error))
+            .finally(() => loading.value = false)
     }
 
     const newCompany = function() {
@@ -74,6 +78,7 @@
                 }
             })
             .catch((error) => showError(error))
+            .finally(() => loading.value = false)
     }
 
     const submit = function() {
@@ -91,15 +96,12 @@
                     contactForm.value = JSON.parse(response.data.data.data.contacts || '{}')
                     myFiles.value = response.data.data.data.logo ? [response.data.data.data.logo] : []
                     loading.value = false;
-
-                    if (nextTab.value) {
-                        tab.value = nextTab.value
-                    }
                 } else {
                     showError('компания не найдена')
                 }
             })
             .catch((error) => showError(error))
+            .finally(() => loading.value = false)
     }
 
     onMounted(async () => {
