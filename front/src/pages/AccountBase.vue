@@ -119,7 +119,7 @@ const menu = [
                     <template v-slot:label>
                         <div class="row items-center no-wrap q-gutter-x-sm">
                             <q-avatar size="32px" color="white" text-color="primary">
-                                <img v-if="user.photo" :src="siteUrl + user.photo" alt="">
+                                <img v-if="user.photo" :src="user.photo" alt="">
                                 <span v-else>{{ user.email?.[0] }}</span>
                             </q-avatar>
                             <div>{{ user.email }}</div>

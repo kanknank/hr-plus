@@ -15,8 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
 header('Access-Control-Allow-Credentials: true');
-// header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE'); 
-// header('Access-Control-Allow-Headers: Authorization, Origin, X-Requested-With, Accept, X-PINGOTHER, Content-Type');
+// header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, HEAD'); 
+// header('Access-Control-Allow-Headers: *');
 
 $router->get('/api/user', ['\App\Controllers\User', 'get']);
 
@@ -35,6 +35,7 @@ $router->post('/api/company/delete', ['\App\Controllers\Company', 'delete']);
 
 $router->get('/api/profile', ['\App\Controllers\Profile', 'get']);
 $router->post('/api/profile/update', ['\App\Controllers\Profile', 'update']);
+$router->post('/api/profile/upload_files', ['\App\Controllers\Profile', 'upload_files']);
 $router->post('/api/profile/change_password', ['\App\Controllers\Profile', 'change_password']);
 
 

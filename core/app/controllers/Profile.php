@@ -18,10 +18,6 @@ class Profile extends \Zoomx\Controllers\Controller
         $ext = $data['extended'] ?? [];
         $data = array_merge($data, $ext);
 
-        if (!empty($data['photo'])) {
-            $data['photo'] = $this->modx->getOption('site_url') . $data['photo'];
-        }
-
         return jsonx(['success' => true, 'data' => $data]);
     }
 
@@ -43,7 +39,7 @@ class Profile extends \Zoomx\Controllers\Controller
         foreach ($_POST as $key => $val) {
             if (in_array($key, ['fullname', 'phone', 'city', 'country'])) {
                 $profile->set($key, trim($val));
-            } else if (in_array($key, ['surname', 'middlename', 'birthdate', 'work_phone', 'tg', 'vk', 'resume', 'portfolio', 'description'])) {
+            } else if (in_array($key, ['surname', 'middlename', 'birthdate', 'work_phone', 'tg', 'vk', 'resume_link', 'portfolio_link', 'description'])) {
                 $ext[$key] = trim($val);
             }
         }
@@ -65,6 +61,61 @@ class Profile extends \Zoomx\Controllers\Controller
         $save = $profile->save();
 
         return jsonx(['success' => !!$save, 'data' => []]);
+    }
+
+
+    /**
+     * 
+     */
+    public function upload_files()
+    {
+        if (!$this->modx->user->isAuthenticated('web')) {
+            return abortx(401);
+        }
+
+        if (!in_array(($_POST['key'] ?? ''), ['avatar', 'portfolio', 'resume'])) {
+            return jsonx(['success' => false, 'message' => 'wrong key']);
+        }
+
+        $files = [];
+        $total_count = count($_FILES[$_POST['key']]['name']);
+
+        $dir = "assets/userfiles/{$this->modx->user->id}/";
+        $uploadPath = MODX_BASE_PATH . $dir;
+        if (!file_exists($uploadPath)) {
+            mkdir($uploadPath, 0777, true);
+        }
+
+        for ($i=0 ; $i < $total_count ; $i++) {
+            $tmpFilePath = $_FILES[$_POST['key']]['tmp_name'][$i];
+            if ($tmpFilePath != "") {
+                $hash = md5_file($_FILES[$_POST['key']]['tmp_name'][$i]);
+                $pathinfo = pathinfo($_FILES[$_POST['key']]['name'][$i]);
+                $filename = "{$pathinfo['filename']}-$hash.{$pathinfo['extension']}";
+                $newFilePath = $uploadPath . $filename;
+
+                if (!file_exists($newFilePath)) {
+                    move_uploaded_file($tmpFilePath, $newFilePath);
+                }
+
+                $files[] = /*$this->modx->getOption('site_url') . */$dir . $filename;
+            }
+        }
+
+        $user = $this->modx->user;
+        $profile = $user->getOne('Profile');
+
+        if ($_POST['key'] == 'avatar') {
+            $profile->set('photo', $files[0] ?? '');
+        } else {
+            $ext = json_decode($profile->extended, true) ?? [];
+            $ext[$_POST['key']] = $files;
+            $profile->set('extended', json_encode($ext));
+        }
+
+        
+        $save = $profile->save();
+        return jsonx(['success' => !!$save, 'data' => $files]);
     }
 
 

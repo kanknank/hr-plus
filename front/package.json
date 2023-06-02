@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --outDir ../public_html/dist --emptyOutDir true",
+    "build": "vite build -w --outDir ../public_html/dist --emptyOutDir true",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -13,14 +13,14 @@
 
     const loading = ref(false)
     const formEl = ref(null)
-    const form = ref({
-        description: ''
-    })
+    const form = ref({ description: '' })
     const formChanged = ref(false)
     const passwordForm = ref({})
     const passwordFormErrors = ref({})
-    const myFiles = ref([])
-    const pond = ref(null)
+    const pondFiles = ref({})
+    const avatarPond = ref(null)
+    const resumePond = ref(null)
+    const portfolioPond = ref(null)
     const tab = ref('edit')
     const nextTab = ref(null)
 
@@ -41,25 +41,45 @@
             .finally(() => loading.value = false)
     }
 
-    const uploadFile = function() {
+    // const uploadFile = function() {
+    //     loading.value = true;
+
+    //     const headers = {}
+    //     let data = {}
+
+    //     headers['Content-Type'] = "multipart/form-data"
+    //     if (pond.value.getFile) {
+    //         data.avatar = pond.value.getFile()
+    //     }
+
+    //     axios.post(`profile/update`, data, { headers })
+    //         .then((response) => {
+    //             delete sessionStorage.user
+    //             showSuccess('Аватар сохранён')
+    //             if (nextTab.value) {
+    //                 tab.value = nextTab.value
+    //             }
+    //             router.push(`/account/profile/?tab=${nextTab.value}`)
+    //         })
+    //         .catch((error) => showError(error))
+    //         .finally(() => loading.value = false)
+    // }
+
+    const uploadFiles = function(key, pond) {
+        console.log(pond.getFiles())
+
         loading.value = true;
+        const data = { key }
+        data[key] = pond.getFiles()
 
-        const headers = {}
-        let data = {}
-
-        headers['Content-Type'] = "multipart/form-data"
-        if (pond.value.getFile) {
-            data.avatar = pond.value.getFile()
-        }
-
-        axios.post(`profile/update`, data, { headers })
+        axios.post(`profile/upload_files`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
             .then((response) => {
-                delete sessionStorage.user
-                showSuccess('Аватар сохранён')
-                if (nextTab.value) {
-                    tab.value = nextTab.value
+                if (response.data?.data?.success) {
+                    key == 'avatar' && delete sessionStorage.user
+                    showSuccess('Файлы загружены')
+                } else {
+                    showError(response.data?.data?.message)
                 }
-                router.push(`/account/profile/?tab=${nextTab.value}`)
             })
             .catch((error) => showError(error))
             .finally(() => loading.value = false)
@@ -70,12 +90,9 @@
 
         axios.post(`profile/change_password`, passwordForm.value)
             .then((response) => {
-                console.log(response.data.data)
                 passwordFormErrors.value = response.data?.data?.errors || {}
                 if (response.data?.data?.success) {
                     showSuccess('Пароль изменён')
-                } else {
-                    showError()
                 }
             })
             .catch((error) => showError(error))
@@ -89,8 +106,10 @@
             .then((response) => {
                 if (response.data?.data?.success) {
                     form.value = response.data.data.data
-                    form.value.description = form.value.description || ''
-                    myFiles.value = response.data.data.data.photo ? [response.data.data.data.photo] : []
+                    pondFiles.value.avatar = response.data.data.data.photo ? [response.data.data.data.photo] : []
+                    pondFiles.value.portfolio = response.data.data.data.portfolio || []
+                    pondFiles.value.resume = response.data.data.data.resume || []
+                    passwordForm.value.username = form.value.email
                 } else {
                     showError()
                 }
@@ -108,9 +127,9 @@
     const changeTab = function(to) {
         nextTab.value = to
 
-        if (tab.value == 'files' && pond.value.getFile()) {
+        /*if (tab.value == 'files' && pond.value.getFile()) {
             formEl.value && formEl.value.submit()
-        } else if (tab.value == 'edit' && formChanged.value) {
+        } else */if (tab.value == 'edit' && formChanged.value) {
             formEl.value && formEl.value.submit()
         } else {
             tab.value = nextTab.value
@@ -132,12 +151,12 @@
         { field: 'work_phone', label: 'Рабочий телефон', validate: ['phone'] },
         { field: 'tg', label: 'Профиль в Телеграм' },
         { field: 'vk', label: 'Профиль в ВК' },
-        { field: 'resume', label: 'Ссылка на резюме' },
-        { field: 'portfolio', label: 'Сайт с портфолио' },
+        { field: 'resume_link', label: 'Ссылка на резюме' },
+        { field: 'portfolio_link', label: 'Сайт с портфолио' },
     ]
 
     const passwordFields = [
-        { field: 'username', name: 'email', type: 'email', label: 'Логин', validate: ['required'] },
+        { field: 'username', name: 'email', type: 'email', label: 'Логин', validate: ['required'], readonly: true },
         { field: 'old_password', type: 'password', label: 'Старый пароль' },
         { field: 'new_password', type: 'password', label: 'Новый пароль' },
         { field: 'confirm_password', type: 'password', label: 'Подтвердите новый пароль', validate: ['confirm_password'] },
@@ -173,8 +192,8 @@
                 <q-form v-if="tab == 'edit'" @submit="updateProfile" greedy ref="formEl" class="box">
                     <h2 class="text-h6">Введите личные данные:</h2>
                     <div class="row q-col-gutter-lg">
-                        <template v-for="i in fields">
-                            <div class="col-12 col col-md-6">
+                        <template v-for="i, n in fields">
+                            <div :class="n < 3 ? 'col-md-4' : 'col-md-6'" class="col-12">
                                 <app-input v-model="form[i.field]" :opts="i" @update:model-value="formChanged = true"/>
                             </div>
                         </template>
@@ -183,7 +202,7 @@
                     <h2 class="q-mt-lg text-h6">Контактные данные:</h2>
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in contactFields">
-                            <div class="col-12 col col-md-6">
+                            <div class="col-12 col-md-6">
                                 <app-input v-model="form[i.field]" :opts="i" @update:model-value="formChanged = true"/>
                             </div>
                         </template>
@@ -198,11 +217,14 @@
                     <h2 class="text-h6">Изменить пароль:</h2>
                     <div class="row q-col-gutter-lg">
                         <template v-for="i in passwordFields">
-                            <div class="col-12 col col-md-6">
+                            <div class="col-12 col-md-6">
+                                <!-- костыль чтоб не автокомплитил старый пароль -->
+                                <input type="text" name="password" hidden>
                                 <app-input v-model="passwordForm[i.field]" :opts="i"
                                     @update:model-value="passwordFormErrors[i.field] = ''"
                                     :error="passwordFormErrors[i.field]"
                                     :form="passwordForm"
+                                    :readonly="!!i.readonly"
                                     autocomplete="new-password"
                                 />
                             </div>
@@ -215,10 +237,30 @@
                 </q-form>
 
                 <!-- Лого -->
-                <q-form v-if="tab == 'files'" @submit="uploadFile()" ref="formEl" class="box">
+                <div v-if="tab == 'files'" class="box">
                     <h2 class="text-h6">Загрузить аватар пользователя:</h2>
-                    <app-file-pond :files="myFiles" ref="pond" label="загрузить аватар"/>
-                </q-form>
+                    <app-file-pond :files="pondFiles.avatar" ref="avatarPond" label="загрузить аватар"/>
+                    <q-btn @click="uploadFiles('avatar', avatarPond)" class="q-mt-md" color="primary">Загрузить</q-btn>
+                    
+                    <h2 class="q-mt-lg text-h6">Загрузить резюме:</h2>
+                    <app-file-pond :files="pondFiles.resume" ref="resumePond" label="загрузить резюме"
+                        accepted-file-types="application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/pdf"
+                        caption="размер файла не должен превышать 1 МБ<br>(допустимые расширения: doc, docx, pdf)"
+                    />
+                    <q-btn @click="uploadFiles('resume', resumePond)" class="q-mt-md" color="primary">Загрузить</q-btn>
+
+                    <h2 class="q-mt-lg text-h6">Загрузить примеры работ (портфолио):</h2>
+                    <app-file-pond :files="pondFiles.portfolio" ref="portfolioPond" label="загрузить файлы"
+                        allow-multiple="true"
+                        caption="размер файла не должен превышать 6 МБ<br>(допустимые расширения: jpg, png, bmp)<br>не более 20 файлов"
+                        image-preview-min-height="150"
+                        image-preview-max-height="150"
+                        max-file-size="6MB"
+                        max-files="20"
+                        class="filepond--grid"
+                    />
+                    <q-btn @click="uploadFiles('portfolio', portfolioPond)" class="q-mt-md" color="primary">Загрузить</q-btn>
+                </div>
 
                 <!-- Просмотр  -->
                 <div v-if="tab == 'view'" class="box">
