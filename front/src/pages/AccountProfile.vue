@@ -75,6 +75,7 @@
         axios.post(`profile/upload_files`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
             .then((response) => {
                 if (response.data?.data?.success) {
+                    getProfile()
                     key == 'avatar' && delete sessionStorage.user
                     showSuccess('Файлы загружены')
                 } else {
@@ -301,7 +302,7 @@
                     </template>
                     <template v-else-if="tab == 'view'">
                         <q-btn @click="changeTab('files')" label="Назад" color="dark"/>
-                        <q-btn to="/account/companies" label="Финиш" color="positive"/>
+                        <q-btn to="/account" label="Финиш" color="positive"/>
                     </template>
                 </div>
             </div>
