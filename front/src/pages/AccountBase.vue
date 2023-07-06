@@ -85,6 +85,21 @@ const menu = [
             },
         ]
     },
+    // {
+    //     label: 'Вакансии',
+    //     icon: mdiAccountDetails,
+    //     childPath: '/vacancy',
+    //     children: [
+    //         {
+    //             to: '/account/vacancy/list',
+    //             label: 'Мои вакансии',
+    //         },
+    //         {
+    //             to: '/account/vacancy/new',
+    //             label: 'Добавить вакансию',
+    //         },
+    //     ]
+    // },
     {
         label: 'Пользователь',
         icon: mdiAccountDetails,
@@ -95,7 +110,7 @@ const menu = [
                 label: 'Личный кабинет',
             },
         ]
-    }
+    },
 ]
 </script>
 

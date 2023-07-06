@@ -35,6 +35,15 @@ body {
         height: 48px;
     }
 
+    .q-field--auto-height .q-field__control,
+    .q-field--auto-height .q-field__native {
+        min-height: 48px;
+    }
+
+    .q-field--auto-height.q-field--labeled .q-field__control-container {
+        padding-top: 0;
+    }
+
     .q-field--outlined .q-field__control:after  {
         border-width: 1px !important;
     }

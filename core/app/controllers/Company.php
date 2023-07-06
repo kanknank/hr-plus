@@ -21,6 +21,8 @@ class Company extends \Zoomx\Controllers\Controller
         $this->modx->addPackage('app', MODX_CORE_PATH . 'app/model/');
 
         $this->columns = str_replace('`', '', explode(', ', $this->modx->getSelectColumns('Company')));
+
+        require_once MODX_CORE_PATH . "app/vendor/autoload.php";
 	}
 
 
@@ -56,29 +58,31 @@ class Company extends \Zoomx\Controllers\Controller
      */
     public function list()
     {
-        $select = $this->columns;
-        foreach ($select as &$c) {
-            $c = "Company.{$c}";
-        }
-        $select[] = 'profile.fullname as author';
+        // $select = $this->columns;
+        // foreach ($select as &$c) {
+        //     $c = "Company.{$c}";
+        // }
+        // $select[] = 'profile.fullname as author';
 
-        $q = $this->modx->newQuery('Company');
-        $q->select($select);
-        $q->where([
-            'user' => $this->modx->user->id
-        ]);
-        $q->sortby('createdon', 'DESC');
-        $q->leftJoin('modUserProfile', 'profile', 'profile.internalKey = Company.user');
-        $q->prepare();
-        $q->stmt->execute();
-        $q_result = $q->stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        // $q = $this->modx->newQuery('Company');
+        // $q->select($select);
+        // $q->where([
+        //     'user' => $this->modx->user->id
+        // ]);
+        // $q->sortby('createdon', 'DESC');
+        // $q->leftJoin('modUserProfile', 'profile', 'profile.internalKey = Company.user');
+        // $q->prepare();
+        // $q->stmt->execute();
+        // $q_result = $q->stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
 
-        foreach ($q_result as &$item) {
-            $date = date_create($item['createdon']);
-            $item['date'] = date_format($date, "d.m.Y");
-        }   
+        // foreach ($q_result as &$item) {
+        //     $date = date_create($item['createdon']);
+        //     $item['date'] = date_format($date, "d.m.Y");
+        // }   
 
-        return jsonx(['success' => true, 'data' => $q_result]);
+        $data = \App\Models\Company::where('user', $this->modx->user->id)->get();
+
+        return jsonx(['success' => true, 'data' => $data]);
     }
 
 

@@ -29,15 +29,22 @@ $router->get('/api/auth/reset-password', ['\App\Controllers\Auth', 'reset_passwo
 
 $router->get('/api/company/{id}', ['\App\Controllers\Company', 'get']);
 $router->post('/api/company/new', ['\App\Controllers\Company', 'new']);
-$router->post('/api/company/list', ['\App\Controllers\Company', 'list']);
 $router->post('/api/company/update', ['\App\Controllers\Company', 'update']);
 $router->post('/api/company/delete', ['\App\Controllers\Company', 'delete']);
+$router->post('/api/company/list', ['\App\Controllers\Company', 'list']);
+
+$router->get('/api/vacancy/data', ['\App\Controllers\Vacancy', 'data']);
+$router->get('/api/vacancy/suggests', ['\App\Controllers\Vacancy', 'suggests']);
+$router->get('/api/vacancy/{id}', ['\App\Controllers\Vacancy', 'get']);
+$router->post('/api/vacancy/new', ['\App\Controllers\Vacancy', 'new']);
+$router->post('/api/vacancy/update', ['\App\Controllers\Vacancy', 'update']);
+$router->post('/api/vacancy/delete', ['\App\Controllers\Vacancy', 'delete']);
+$router->post('/api/vacancy/list', ['\App\Controllers\Vacancy', 'list']);
 
 $router->get('/api/profile', ['\App\Controllers\Profile', 'get']);
 $router->post('/api/profile/update', ['\App\Controllers\Profile', 'update']);
 $router->post('/api/profile/upload_files', ['\App\Controllers\Profile', 'upload_files']);
 $router->post('/api/profile/change_password', ['\App\Controllers\Profile', 'change_password']);
-
 
 $router->get('/', function() use ($modx) {
     return viewx("base.tpl");

@@ -23,7 +23,8 @@ import AccountCompanies from './pages/AccountCompanies.vue'
 import AccountCompanyNew from './pages/AccountCompanyNew.vue'
 import AccountCompanyEdit from './pages/AccountCompanyEdit.vue'
 import AccountProfile from './pages/AccountProfile.vue'
-
+import AccountVacancyList from './pages/AccountVacancyList.vue'
+import AccountVacancyEdit from './pages/AccountVacancyEdit.vue'
 
 const routes = [
     { path: '/', redirect: '/auth/login' },
@@ -38,6 +39,10 @@ const routes = [
     { path: '/account/company/:id(\\d+)', component: AccountCompanyEdit, meta: { title: 'Огранизация' } },
 
     { path: '/account/profile', component: AccountProfile, meta: { title: 'Мой профиль' } },
+
+    { path: '/account/company/:company_id(\\d+)/vacancies', component: AccountVacancyList, meta: { title: 'Мои вакансии' } },
+    //{ path: '/account/vacancy/new', component: AccountVacancyNew, meta: { title: 'Добавить вакансию' } },
+    { path: '/account/vacancy/:id(\\d+)/edit', component: AccountVacancyEdit, meta: { title: 'Вакансия' } },
 ]
 
 const router = createRouter({
