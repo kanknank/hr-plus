@@ -20,6 +20,7 @@ class Company extends \Illuminate\Database\Eloquent\Model {
     }
 
     public function getAuthorAttribute() {
-        return $this->user;
+        $profile = \App\Models\Profile::where('internalKey', $this->user)->first();
+        return $profile ? $profile->email : $this->user;
     }
 }

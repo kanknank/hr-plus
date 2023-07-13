@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { mdiDotsHorizontal, mdiClose, mdiPencil, mdiEye, mdiPlusCircleOutline, mdiMinusCircleOutline } from '@quasar/extras/mdi-v6'
 import AccountBase from './AccountBase.vue'
 import AppTooltip from '../components/AppTooltip.vue'
+import AppTableValue from '../components/AppTableValue.vue'
 import { useElementSize } from '@vueuse/core'
 import { useQuasar } from 'quasar'
 import { showSuccess, showError } from '../functions.js'
@@ -15,16 +16,21 @@ const loading = ref(true)
 const hiddenColumns = ref([])
 const companyId = ref(0)
 const rows = ref([])
+const filter = ref({ status: '' })
 const box = ref(null)
 const { width } = useElementSize(box)
 const $q = useQuasar()
 
+
 const tableColumns = [
-    { name: 'name', label: 'Наименование организации', field: 'name', align: 'left', sortable: true},
-    { name: 'feedback', label: 'Отклики в работе', field: 'feedback', align: 'center', hideFrom: 900, sortable: false },
-    { name: 'author', label: 'Создатель вакансии', field: 'author', align: 'left', hideFrom: 1050, sortable: false },
-    { name: 'created_at', label: 'Дата создания', field: 'created_at', align: 'left', hideFrom: 1300, sortable: false },
-    { name: 'action', label: 'Действие', field: 'action', hideFrom: 400, sortable: false },
+    { name: 'name', label: 'Наименование вакансии', tooltip: 'Вся информация о вакансии', align: 'left', sortable: true},
+    { name: 'feedback', label: 'Отклики в работе', align: 'center', hideFrom: 900, sortable: false },
+    { name: 'refusal_hr', label: 'Отказ HR', align: 'center', hideFrom: 900, sortable: false },
+    { name: 'refusal_user', label: 'Отказ соискателя', align: 'center', hideFrom: 900, sortable: false },
+    { name: 'reserved', label: 'В резерве', align: 'center', hideFrom: 900, sortable: false },
+    { name: 'author', label: 'Создатель вакансии', tooltip: 'Личная страница создателя вакансии', align: 'left', hideFrom: 1050, sortable: false },
+    { name: 'created_at', label: 'Дата создания', tooltip: 'Дата создания вакансии', align: 'left', hideFrom: 1300, sortable: false },
+    { name: 'action', label: 'Действие', hideFrom: 400, sortable: false },
 ]
 
 const visibleColumns = computed(() => {
@@ -42,10 +48,10 @@ const visibleColumns = computed(() => {
     return visible
 })
 
-const getList = function(name) {
+const getList = function() {
     loading.value = true
     
-    axios.post('vacancy/list', { 'company_id': companyId.value})
+    axios.post('vacancy/list', { 'company_id': companyId.value, status: filter.value.status })
         .then((response) => {
             if (response.data?.data?.success) {
                 rows.value = response.data.data.data
@@ -81,10 +87,28 @@ const removeVacancy = function(id, name) {
     }).onOk(() => {
         axios.post('vacancy/delete', { id })
             .then((response) => {
-                console.log(response.data)
                 if (response.data.data.success) {
-                    getCompanies()
+                    getList()
                     showSuccess('Вакансия удалена')
+                } else {
+                    showError(response.data.data.message)
+                }
+            })
+            .catch((error) => showError(error))
+    })
+}
+
+const closeVacancy = function(id, name) {
+    $q.dialog({
+        title: `Закрыть вакансию «${name}»?`,
+        cancel: 'Отмена',
+        persistent: true
+    }).onOk(() => {
+        axios.post('vacancy/update', { id, status: 'closed' })
+            .then((response) => {
+                if (response.data.data.success) {
+                    getList()
+                    showSuccess('Вакансия закрыта')
                 } else {
                     showError(response.data.data.message)
                 }
@@ -102,8 +126,6 @@ onMounted(async () => {
     companyId.value = +route.params.company_id
     getList()
 })
-
-
 </script>
 
 <template>
@@ -111,7 +133,19 @@ onMounted(async () => {
         <q-inner-loading :showing="loading" color="primary"/>
 
         <div class="box" ref="box">
-            <q-btn @click="newVacancy()" label="Добавить вакансию" color="primary" class="q-mb-md"/>
+
+            <div class="row justify-between q-mb-md" >
+                <q-btn @click="newVacancy()" label="Добавить вакансию" color="primary" class="col-12 col-sm-auto"/>
+                <q-select
+                    v-model="filter.status"
+                    @update:model-value="getList()"
+                    :options="[{ label: 'Только открытые', value: '' }, { label: 'Показать все', value: 'all' }]"
+                    emit-value
+                    map-options
+                    outlined
+                    class="col-12 col-sm-auto"
+                />
+            </div>
 
             <q-table
                 :rows="rows" row-key="id" 
@@ -147,22 +181,21 @@ onMounted(async () => {
                         <!-- Ячейка -->
                         <q-td v-for="col in props.cols" :key="col.name" :props="props">
                             <template v-if="col.name === 'name'">
-                                <router-link :to="`/account/vacancy/${props.row.id}/edit`" class="text-primary">
+                                <router-link :to="`/account/vacancy/${props.row.id}/edit`"
+                                    :class="props.row.status == 'closed' ? 'text-grey' : 'text-primary'"
+                                >
                                     <b>{{ props.row.name || 'Без названия' }}</b>
-                                    <app-tooltip>Вся информация об организации</app-tooltip>
+                                    <app-tooltip>{{ col.tooltip }}</app-tooltip>
                                 </router-link>
                             </template>
 
-                            <template v-else-if="col.name === 'vacancy'">
-                                <q-badge color="positive">0<app-tooltip class="bg-dark">Посмотреть все вакансии организации</app-tooltip></q-badge>
-                            </template>
-
-                            <template v-else-if="col.name === 'users'">
-                                <q-badge color="negative">0<app-tooltip class="bg-dark">Пригласить специалиста в организацию</app-tooltip></q-badge>
-                            </template>
-
-                            <template v-else-if="col.name === 'feedback'">
-                                <q-badge color="negative">0<app-tooltip class="bg-dark">Нет откликов на вакансии организации</app-tooltip></q-badge>
+                            <template v-else-if="['feedback', 'refusal_hr', 'refusal_user', 'reserved'].includes(col.name)">
+                                <app-table-value
+                                    :link="`#`"
+                                    :value="0"
+                                    :tooltip="col.label"
+                                    type="badge-count"
+                                />
                             </template>
                             
                             <template v-else-if="col.name === 'action'">
@@ -171,17 +204,21 @@ onMounted(async () => {
                                     padding="6px" no-icon-animation 
                                 >
                                     <q-list class="comp-table__menu">
-                                        <q-item :to="`/account/company/${props.row.id}?tab=view`">
+                                        <q-item :to="`/account/vacancy/${props.row.id}/edit?tab=view`">
                                             <q-item-section avatar><q-icon :name="mdiEye" size="14px" color="secondary"/></q-item-section>
                                             <q-item-section><q-item-label>Просмотр</q-item-label> </q-item-section>
                                         </q-item>
-                                        <q-item :to="`/account/company/${props.row.id}`">
+                                        <q-item :to="`/account/vacancy/${props.row.id}/edit`">
                                             <q-item-section avatar><q-icon :name="mdiPencil" size="14px" color="positive"/></q-item-section>
-                                            <q-item-section><q-item-label>Редактирование</q-item-label></q-item-section>
+                                            <q-item-section><q-item-label>Редактировать</q-item-label></q-item-section>
+                                        </q-item>
+                                        <q-item clickable v-close-popup @click="closeVacancy(props.row.id, props.row.name)">
+                                            <q-item-section avatar><q-icon :name="mdiClose" size="14px"/></q-item-section>
+                                            <q-item-section><q-item-label>Закрыть</q-item-label></q-item-section>
                                         </q-item>
                                         <q-item clickable v-close-popup @click="removeVacancy(props.row.id, props.row.name)">
                                             <q-item-section avatar><q-icon :name="mdiClose" size="14px" color="negative"/></q-item-section>
-                                            <q-item-section><q-item-label>Удаление</q-item-label></q-item-section>
+                                            <q-item-section><q-item-label>Удалить</q-item-label></q-item-section>
                                         </q-item>
                                     </q-list>
                                 </q-btn-dropdown>
@@ -189,20 +226,20 @@ onMounted(async () => {
 
                             <template v-else-if="col.name === 'author'">
                                 <q-badge color="positive">
-                                    {{ col.value || '—' }}
-                                    <app-tooltip class="bg-dark">Личная страница создателя аккаунта</app-tooltip>
+                                    {{ props.row.author || '—' }}
+                                    <app-tooltip class="bg-dark">{{ col.tooltip }}</app-tooltip>
                                 </q-badge>
                             </template>
 
                             <template v-else-if="col.name === 'created_at'">
                                 <q-badge class="_light">
-                                    {{ col.value }}
-                                    <app-tooltip class="bg-dark">Дата создания профиля организации</app-tooltip>
+                                    {{ props.row.created_at }}
+                                    <app-tooltip class="bg-dark">{{ col.tooltip }}</app-tooltip>
                                 </q-badge>
                             </template>
 
                             <template v-else>
-                                <b>{{ col.value }}</b>
+                                <b>{{ props.row.value }}</b>
                             </template>
                         </q-td>
                     </q-tr>
@@ -215,29 +252,26 @@ onMounted(async () => {
                                         <div><b>{{ findColumn(i).label }}</b></div>
 
                                         <div>
-                                            <template v-if="i === 'vacancy'">
-                                                <q-badge color="positive">0<app-tooltip class="bg-dark">Посмотреть все вакансии организации</app-tooltip></q-badge>
-                                            </template>
-
-                                            <template v-else-if="i === 'users'">
-                                                <q-badge color="negative">0<app-tooltip class="bg-dark">Пригласить специалиста в организацию</app-tooltip></q-badge>
-                                            </template>
-
-                                            <template v-else-if="i === 'feedback'">
-                                                <q-badge color="negative">0<app-tooltip class="bg-dark">Нет откликов на вакансии организации</app-tooltip></q-badge>
+                                            <template v-if="['feedback', 'refusal_hr', 'refusal_user', 'reserved'].includes(i)">
+                                                <app-table-value
+                                                    :link="`#`"
+                                                    :value="0"
+                                                    :tooltip="findColumn(i).label"
+                                                    type="badge-count"
+                                                />
                                             </template>
 
                                             <template v-else-if="i === 'author'">
                                                 <q-badge color="positive">
                                                     {{ props.row[i] || '—' }}
-                                                    <app-tooltip class="bg-dark">Личная страница создателя аккаунта</app-tooltip>
+                                                    <app-tooltip class="bg-dark">{{ findColumn(i).tooltip }}</app-tooltip>
                                                 </q-badge>
                                             </template>
 
                                             <template v-else-if="i === 'created_at'">
                                                 <q-badge class="_light">
                                                     {{ props.row[i] }}
-                                                    <app-tooltip class="bg-dark">Дата создания профиля организации</app-tooltip>
+                                                    <app-tooltip class="bg-dark">{{ findColumn(i).tooltip }}</app-tooltip>
                                                 </q-badge>
                                             </template>
 
@@ -247,17 +281,21 @@ onMounted(async () => {
                                                     padding="6px" no-icon-animation 
                                                 >
                                                     <q-list class="comp-table__menu">
-                                                        <q-item :to="`/account/company/${props.row.id}?tab=view`">
+                                                        <q-item :to="`/account/vacancy/${props.row.id}/edit?tab=view`">
                                                             <q-item-section avatar><q-icon :name="mdiEye" size="14px" color="secondary"/></q-item-section>
                                                             <q-item-section><q-item-label>Просмотр</q-item-label> </q-item-section>
                                                         </q-item>
-                                                        <q-item :to="`/account/company/${props.row.id}`">
+                                                        <q-item :to="`/account/vacancy/${props.row.id}/edit`">
                                                             <q-item-section avatar><q-icon :name="mdiPencil" size="14px" color="positive"/></q-item-section>
-                                                            <q-item-section><q-item-label>Редактирование</q-item-label></q-item-section>
+                                                            <q-item-section><q-item-label>Редактировать</q-item-label></q-item-section>
+                                                        </q-item>
+                                                        <q-item clickable v-close-popup @click="closeVacancy(props.row.id, props.row.name)">
+                                                            <q-item-section avatar><q-icon :name="mdiClose" size="14px"/></q-item-section>
+                                                            <q-item-section><q-item-label>Закрыть</q-item-label></q-item-section>
                                                         </q-item>
                                                         <q-item clickable v-close-popup @click="removeCompany(props.row.id, props.row.name)">
                                                             <q-item-section avatar><q-icon :name="mdiClose" size="14px" color="negative"/></q-item-section>
-                                                            <q-item-section><q-item-label>Удаление</q-item-label></q-item-section>
+                                                            <q-item-section><q-item-label>Удалить</q-item-label></q-item-section>
                                                         </q-item>
                                                     </q-list>
                                                 </q-btn-dropdown>

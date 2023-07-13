@@ -66,6 +66,8 @@ class Vacancy extends \Zoomx\Controllers\Controller
         
         $obj = \App\Models\Vacancy::find($_POST['id']);
         $obj->update($_POST);
+
+        return jsonx(['success' => true]);
     }
 
 
@@ -78,7 +80,15 @@ class Vacancy extends \Zoomx\Controllers\Controller
             return jsonx(['success' => false, 'message' => 'id is required']);
         }
 
-        
+        $obj = \App\Models\Vacancy::where('id', $_POST['id'])->where('user_id', $this->modx->user->id)->first();
+
+        if (!$obj) {
+            return jsonx(['success' => false, 'message' => 'vacancy not found']);
+        }
+
+        $obj->delete();
+
+        return jsonx(['success' => true]);
     }
 
 
@@ -91,7 +101,11 @@ class Vacancy extends \Zoomx\Controllers\Controller
             return jsonx(['success' => false, 'message' => 'company_id is required']);
         }
 
-        $data = \App\Models\Vacancy::where('company_id', $_POST['company_id'])->get();
+        $q = \App\Models\Vacancy::where('company_id', $_POST['company_id']);
+        if (!isset($_POST['status']) || $_POST['status'] != 'all') {
+            $q->where('status', '!=', 'closed')->orWhere('status', null);
+        }
+        $data = $q->get();
 
         return jsonx(['success' => true, 'data' => $data]);
     }
@@ -125,10 +139,14 @@ class Vacancy extends \Zoomx\Controllers\Controller
         curl_close($curl);
         $dictionaries = json_decode($dictionaries, true) ?? [];
 
+        $user = $this->modx->user;
+        $profile = $user->getOne('Profile')->toArray();
+
         return jsonx(['success' => true, 'data' => [
             'areas' => $areas,
             'specializations' => $spec,
-            'dictionaries' => $dictionaries
+            'dictionaries' => $dictionaries,
+            'profile' => $profile
         ]]);
     }
 

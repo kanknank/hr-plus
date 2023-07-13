@@ -26,6 +26,7 @@ class Vacancy extends \Illuminate\Database\Eloquent\Model
     ];
 
     public function getAuthorAttribute() {
-        return $this->user_id;
+        $profile = \App\Models\Profile::where('internalKey', $this->user_id)->first();
+        return $profile ? $profile->email : $this->user_id;
     }
 }

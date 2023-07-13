@@ -15,12 +15,13 @@
     const formEl = ref(null)
     const formEmpty = {
         description: '', short_description: '', salary: {}, areas: [], address: {}, key_skills: [],
-        contacts: { show: true }, working_time_modes: [], misc: { accept: [] }
+        contacts: { show: true }, working_time_modes: [], languages: {}, misc: { accept: [] }
     }
     const form = ref(Object.assign({}, formEmpty,))
     const formChanged = ref(false)
     const values = ref({ specializations: [], areas: [] })
     const dicts = ref({})
+    const profile = ref({})
     const skills = ref([])
     
     const tab = ref('edit')
@@ -77,6 +78,7 @@
             values.value.specializations = response.data?.data?.data?.specializations?.categories || []
             values.value.areas = response.data?.data?.data?.areas || []
             dicts.value = response.data?.data?.data?.dictionaries || []
+            profile.value = response.data?.data?.data?.profile || {}
         })
         .catch((error) => showError(error))
         .finally(() => loading.value = false)
@@ -113,6 +115,14 @@
                 })
                 .catch((error) => showError(error))
         })
+    }
+
+    const dictName = function(dict, id) {
+        if (dicts.value?.[dict]) {
+            const item = dicts.value?.[dict].find(el => el.id === id) || {}
+            return item.name || id;
+        }
+        return id;
     }
 
     watch(
@@ -158,7 +168,7 @@
                         <div class="col-12">
                             <div class="text-weight-bold q-mb-sm">Специализация</div>
                             <div>{{ form.specialization }}</div>
-                            <div  @click="modals.spec = true" class="q-mt-sm text-primary">Выбрать</div>
+                            <div @click="modals.spec = true" class="q-mt-sm text-primary" style="cursor: pointer">Выбрать</div>
                         </div>
 
                         <div class="col-12">
@@ -168,7 +178,7 @@
                                     <q-chip removable>{{ area }}</q-chip>
                                 </template>
                             </div>
-                            <div @click="modals.areas = true" class="q-mt-sm text-primary">Выбрать</div>
+                            <div @click="modals.areas = true" class="q-mt-sm text-primary" style="cursor: pointer">Выбрать</div>
                         </div>
 
                         <div class="col-12">
@@ -249,21 +259,24 @@
                 </q-form>
 
                 <!--  -->
-                <q-form v-if="tab == 'secondary'" greedy class="box" action="">
+                <q-form v-if="tab == 'secondary'" @submit="update()" ref="formEl" greedy class="box" action="">
                     <h2 class="text-h6">Дополнительная информация:</h2>
 
                     <div class="row q-col-gutter-lg">
                         <div class="col-12">
                             <q-select
                                 outlined
-                                v-model="form.manager_id"
-                                :options="[{ label: 'Менеджер вакансии', value: 1 }]"
+                                v-model="profile.id"
+                                :options="[{ label: profile.fullname, value: profile.id }]"
+                                emit-value
+                                map-options
                                 label="Менеджер вакансии"
                             />
                             <q-checkbox
                                 v-model="form.misc.notify_manager"
                                 label="Уведомлять об откликах и сообщениях на почту менеджера"
                                 :val="true"
+                                :false-value="null"
                                 class="q-mt-sm"
                             />
                         </div>
@@ -278,13 +291,13 @@
                         </div>
                         <template v-if="form.contacts.show">
                             <div class="col-12 col-md-4">
-                                <app-input v-model="form.contacts.name" :opts="{ label: 'Контактное лицо' }"/>
+                                <app-input v-model="profile.fullname" :opts="{ label: 'Контактное лицо' }" readonly/>
                             </div>
                             <div class="col-12 col-md-4">
-                                <app-input v-model="form.contacts.email" :opts="{ label: 'Email' }"/>
+                                <app-input v-model="profile.email" :opts="{ label: 'Email' }" readonly/>
                             </div>
                             <div class="col-12 col-md-4">
-                                <app-input v-model="form.contacts.phone" :opts="{ label: 'Телефон' }"/>
+                                <app-input v-model="profile.phone" :opts="{ label: 'Телефон' }" readonly/>
                             </div>
                         </template>
                         
@@ -326,19 +339,23 @@
                                 <div class="col-12 col-md-6">
                                     <q-select
                                         outlined
-                                        v-model="form.language"
-                                        :options="[{ label: 'Английский', value: 'en' }, { label: 'Немецкий', value: 'de' }]"
+                                        v-model="form.languages.name"
+                                        :options="[{ label: 'Английский', value: 'Английский' }, { label: 'Немецкий', value: 'Немецкий' }]"
                                         label="Язык"
+                                        emit-value
+                                        map-options
                                     />
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <q-select
                                         outlined
-                                        v-model="form.language_level"
+                                        v-model="form.languages.level"
                                         :options="dicts.language_level"
                                         label="Уровень"
                                         option-value="id"
                                         option-label="name"
+                                        emit-value
+                                        map-options
                                     />
                                 </div>
                             </div>
@@ -409,6 +426,56 @@
 
                 <!-- Просмотр  -->
                 <div v-if="tab == 'view'" class="box">
+                    <p><b>Наименование вакансии:</b> {{ form.name }}</p>
+                    <p><b>Внутренний код:</b> {{ form.code || '—' }}</p>
+                    <p><b>Специализация:</b> {{ form.specialization || '—' }}</p>
+                    <p><b>Город:</b> {{ form.areas && form.areas.join(', ') || '—' }}</p>
+                    <p><b>Уровень дохода:</b> от {{ form.salary.from || '—' }} до {{ form.salary.to || '—' }} {{ form.salary.currency?.label }}</p>
+                    <p v-if="form.address.show"><b>Адрес:</b> {{ form.address?.value || '—' }}</p>
+                    <p><b>Опыт работы:</b> {{ dictName('experience', form.experience) }}</p>
+                    <p><b>Описание вакансии:</b></p>
+                    <p v-html="form.description"></p>
+                    <p><b>Короткое описание вакансии:</b></p>
+                    <p v-html="form.short_description"></p>
+                    <p><b>Ключевые навыки:</b> {{ form.key_skills && form.key_skills.join(', ') || '—' }}</p>
+
+                    <p><b>Менеджер вакансии:</b> {{ profile.fullname || '—' }}</p>
+                    <template v-if="form.contacts.show">
+                        <!-- <p><b>Контактное лицо:</b> {{ form.code || '—' }}</p> -->
+                        <p><b>Email менеджера:</b> {{ profile.email || '—' }}</p>
+                        <p><b>Телефон менеджера:</b> {{ profile.phone || '—' }}</p>
+                    </template>
+                    <p>
+                        <b>Тип занятости:</b>
+                        {{ dictName('employment', form.employment) }}
+                        <template v-if="form.misc.accept.includes('accept_temporary')">, Возможно временное оформление</template>
+                    </p>
+                    <p>
+                        <b>Режим работы: </b>
+                        <template v-for="(i, n) in form.working_time_modes">
+                            <template v-if="i == 'only_saturday_and_sunday'">{{ dictName('working_days', i) }}</template>
+                            <template v-if="i == 'from_four_to_six_hours_in_a_day'">{{ dictName('working_time_intervals', i) }}</template>
+                            <template v-if="i == 'start_after_sixteen'">{{ dictName('working_time_modes', i) }}</template>
+                            <template v-if="n < form.working_time_modes.length - 1">, </template>
+                        </template>
+                    </p>
+                    <p><b>График работы:</b> {{ dictName('schedule', form.schedule) }}</p>
+
+                    <p><b>Знание языков:</b> {{ form.languages.name || '—' }}, {{ form.languages.level || '—' }}</p>
+                    <p><b>Категория прав:</b> {{ form.driver_license_types && form.driver_license_types.join(', ') || '—' }}</p>
+                    <p>
+                        <b>Кто может откликаться:</b>
+                        <template v-for="(i, n) in form.misc.accept">
+                            <template v-if="i == 'accept_handicapped'">Соискатели с инвалидностью</template>
+                            <template v-if="i == 'accept_kids'">Соискатели с 14 лет</template>
+                            <template v-if="i == 'accept_incomplete_resumes'">Соискатели с неполным резюме</template>
+                            <template v-if="i == 'response_letter_required'">Только с сопроводительным письмом</template>
+                            <template v-if="n < form.misc.accept.length - 1">, </template>
+                        </template>
+                    </p>
+                    <p><b>Чат с соискателем:</b> {{ form.misc.chat ? 'вкл.' : 'выкл.' }}</p>
+
+
                     <!-- <h2 class="text-h6">Общие данные:</h2>
                     <template v-for="i in fields">
                         <p class="">
@@ -443,7 +510,7 @@
     </account-base>
 
     <q-dialog v-model="modals.spec">
-        <q-card>
+        <q-card class="modal-select">
             <q-card-section>
                 <div class="text-h6">Выберите специализацию</div>
             </q-card-section>
@@ -462,6 +529,7 @@
                                     v-model="form.specialization"
                                     :label="prop.node.name"
                                     :val="prop.node.name"
+                                    dense
                                 />
                                 <div v-else class="">{{ prop.node.name }}</div>
                             </div>
@@ -476,7 +544,7 @@
     </q-dialog>
 
     <q-dialog v-model="modals.areas">
-        <q-card>
+        <q-card class="modal-select">
             <q-card-section>
                 <div class="text-h6">Выберите город</div>
             </q-card-section>
@@ -495,6 +563,7 @@
                                     v-model="form.areas"
                                     :label="prop.node.name"
                                     :val="prop.node.name"
+                                    dense
                                 />
                                 <div v-else class="">{{ prop.node.name }}</div>
                             </div>
@@ -508,3 +577,9 @@
         </q-card>
     </q-dialog>
 </template>
+
+<style scoped>
+    .modal-select {
+        width: 600px;
+    }
+</style>
