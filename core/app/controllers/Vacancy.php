@@ -103,7 +103,9 @@ class Vacancy extends \Zoomx\Controllers\Controller
 
         $q = \App\Models\Vacancy::where('company_id', $_POST['company_id']);
         if (!isset($_POST['status']) || $_POST['status'] != 'all') {
-            $q->where('status', '!=', 'closed')->orWhere('status', null);
+            //$q->where('status', '!=', 'closed')->orWhere('status', null);
+
+            $q->where(function ($q) { $q->where('status', '!=', 'closed')->orWhereNull('status'); });
         }
         $data = $q->get();
 
