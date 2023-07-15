@@ -137,7 +137,6 @@ onMounted(async () => {
             <div class="row justify-between q-mb-md" >
                 <q-btn @click="newVacancy()" label="Добавить вакансию" color="primary" class="col-12 col-sm-auto"/>
                 <q-select
-                    v-if="rows.length"
                     v-model="filter.status"
                     @update:model-value="getList()"
                     :options="[{ label: 'Только открытые', value: '' }, { label: 'Показать все', value: 'all' }]"
