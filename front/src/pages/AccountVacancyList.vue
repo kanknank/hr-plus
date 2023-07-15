@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
-import { mdiDotsHorizontal, mdiClose, mdiPencil, mdiEye, mdiPlusCircleOutline, mdiMinusCircleOutline } from '@quasar/extras/mdi-v6'
+import { mdiDotsHorizontal, mdiClose, mdiPencil, mdiEye, mdiPlusCircleOutline, mdiMinusCircleOutline, mdiFolderOpenOutline } from '@quasar/extras/mdi-v6'
 import AccountBase from './AccountBase.vue'
 import AppTooltip from '../components/AppTooltip.vue'
 import AppTableValue from '../components/AppTableValue.vue'
@@ -81,7 +81,7 @@ const newVacancy = function() {
 
 const removeVacancy = function(id, name) {
     $q.dialog({
-        title: `Удалить вакансию «${name}»?`,
+        title: `Удалить вакансию «${name || 'Без названия'}»?`,
         cancel: 'Отмена',
         persistent: true
     }).onOk(() => {
@@ -98,17 +98,17 @@ const removeVacancy = function(id, name) {
     })
 }
 
-const closeVacancy = function(id, name) {
+const changeStatus = function(id, name, status) {
     $q.dialog({
-        title: `Закрыть вакансию «${name}»?`,
+        title: `${status == 'closed' ? 'Закрыть' : 'Открыть'} вакансию «${name || 'Без названия'}»?`,
         cancel: 'Отмена',
         persistent: true
     }).onOk(() => {
-        axios.post('vacancy/update', { id, status: 'closed' })
+        axios.post('vacancy/update', { id, status })
             .then((response) => {
                 if (response.data.data.success) {
                     getList()
-                    showSuccess('Вакансия закрыта')
+                    showSuccess(`Вакансия ${status == 'closed' ? 'закрыта' : 'открыта'}`)
                 } else {
                     showError(response.data.data.message)
                 }
@@ -137,6 +137,7 @@ onMounted(async () => {
             <div class="row justify-between q-mb-md" >
                 <q-btn @click="newVacancy()" label="Добавить вакансию" color="primary" class="col-12 col-sm-auto"/>
                 <q-select
+                    v-if="rows.length"
                     v-model="filter.status"
                     @update:model-value="getList()"
                     :options="[{ label: 'Только открытые', value: '' }, { label: 'Показать все', value: 'all' }]"
@@ -147,7 +148,12 @@ onMounted(async () => {
                 />
             </div>
 
+            <div v-if="!rows.length && !loading">
+                Нет вакансий в компании
+            </div>
+
             <q-table
+                v-else
                 :rows="rows" row-key="id" 
                 :columns="tableColumns" :visible-columns="visibleColumns"
                 binary-state-sort
@@ -212,9 +218,13 @@ onMounted(async () => {
                                             <q-item-section avatar><q-icon :name="mdiPencil" size="14px" color="positive"/></q-item-section>
                                             <q-item-section><q-item-label>Редактировать</q-item-label></q-item-section>
                                         </q-item>
-                                        <q-item clickable v-close-popup @click="closeVacancy(props.row.id, props.row.name)">
+                                        <q-item v-if="props.row.status != 'closed'" clickable v-close-popup @click="changeStatus(props.row.id, props.row.name, 'closed')">
                                             <q-item-section avatar><q-icon :name="mdiClose" size="14px"/></q-item-section>
                                             <q-item-section><q-item-label>Закрыть</q-item-label></q-item-section>
+                                        </q-item>
+                                        <q-item v-if="props.row.status == 'closed'" clickable v-close-popup @click="changeStatus(props.row.id, props.row.name, 'opened')">
+                                            <q-item-section avatar><q-icon :name="mdiFolderOpenOutline" size="14px"/></q-item-section>
+                                            <q-item-section><q-item-label>Открыть</q-item-label></q-item-section>
                                         </q-item>
                                         <q-item clickable v-close-popup @click="removeVacancy(props.row.id, props.row.name)">
                                             <q-item-section avatar><q-icon :name="mdiClose" size="14px" color="negative"/></q-item-section>
@@ -289,9 +299,13 @@ onMounted(async () => {
                                                             <q-item-section avatar><q-icon :name="mdiPencil" size="14px" color="positive"/></q-item-section>
                                                             <q-item-section><q-item-label>Редактировать</q-item-label></q-item-section>
                                                         </q-item>
-                                                        <q-item clickable v-close-popup @click="closeVacancy(props.row.id, props.row.name)">
+                                                        <q-item v-if="props.row.status != 'closed'" clickable v-close-popup @click="changeStatus(props.row.id, props.row.name, 'closed')">
                                                             <q-item-section avatar><q-icon :name="mdiClose" size="14px"/></q-item-section>
                                                             <q-item-section><q-item-label>Закрыть</q-item-label></q-item-section>
+                                                        </q-item>
+                                                        <q-item v-if="props.row.status == 'closed'" clickable v-close-popup @click="changeStatus(props.row.id, props.row.name, 'opened')">
+                                                            <q-item-section avatar><q-icon :name="mdiFolderOpenOutline" size="14px"/></q-item-section>
+                                                            <q-item-section><q-item-label>Открыть</q-item-label></q-item-section>
                                                         </q-item>
                                                         <q-item clickable v-close-popup @click="removeCompany(props.row.id, props.row.name)">
                                                             <q-item-section avatar><q-icon :name="mdiClose" size="14px" color="negative"/></q-item-section>

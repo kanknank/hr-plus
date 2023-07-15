@@ -2,7 +2,7 @@
     import { ref, onMounted, watch, watchEffect } from 'vue'
     import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router'
     import axios from 'axios'
-    import { mdiAccount, mdiTextBoxOutline, mdiFileDocument, mdiEye } from '@quasar/extras/mdi-v6'
+    import { mdiClose, mdiMagnify, mdiTextBoxOutline, mdiFileDocument, mdiEye } from '@quasar/extras/mdi-v6'
     import AccountBase from './AccountBase.vue'
     import AppInput from '../components/AppInput.vue'
     import { showSuccess, showError } from '../functions.js'
@@ -20,6 +20,8 @@
     const form = ref(Object.assign({}, formEmpty,))
     const formChanged = ref(false)
     const values = ref({ specializations: [], areas: [] })
+    const filterCity = ref('')
+    const filterSpec = ref('')
     const dicts = ref({})
     const profile = ref({})
     const skills = ref([])
@@ -175,7 +177,7 @@
                             <div class="text-weight-bold q-mb-sm">Город, в котором ищем сотрудника</div>
                             <div>
                                 <template v-for="area in form.areas">
-                                    <q-chip removable>{{ area }}</q-chip>
+                                    <q-chip @remove="form.areas = form.areas.filter(i => i != area)" removable>{{ area }}</q-chip>
                                 </template>
                             </div>
                             <div @click="modals.areas = true" class="q-mt-sm text-primary" style="cursor: pointer">Выбрать</div>
@@ -515,17 +517,27 @@
                 <div class="text-h6">Выберите специализацию</div>
             </q-card-section>
 
+            <q-input v-model="filterSpec" outlined rounded class="q-px-md q-mb-md" placeholder="начните печатать" autofocus>
+                <template v-slot:prepend>
+                    <q-icon :name="mdiMagnify" />
+                </template>
+                <template v-slot:append>
+                    <q-icon v-if="filterSpec !== ''" :name="mdiClose" class="cursor-pointer" @click="filterSpec = ''" />
+                </template>
+            </q-input>
+
             <q-card-section class="q-pt-none">
                 <q-tree v-if="values.specializations.length"
                         :nodes="values.specializations || []"
                         node-key="name"
                         children-key="roles"
                         label-key="name"
+                        :filter="filterSpec"
                     >
                         <template v-slot:default-header="prop">
                             <div class="row items-center">
                                 <q-radio
-                                    v-if="!prop.node.roles?.length"
+                                    v-if="!prop.node.roles || prop.node.id == 27"
                                     v-model="form.specialization"
                                     :label="prop.node.name"
                                     :val="prop.node.name"
@@ -549,6 +561,15 @@
                 <div class="text-h6">Выберите город</div>
             </q-card-section>
 
+            <q-input v-model="filterCity" outlined rounded class="q-px-md q-mb-md" placeholder="начните печатать" autofocus>
+                <template v-slot:prepend>
+                    <q-icon :name="mdiMagnify" />
+                </template>
+                <template v-slot:append>
+                    <q-icon v-if="filterCity !== ''" :name="mdiClose" class="cursor-pointer" @click="filterCity = ''" />
+                </template>
+            </q-input>
+
             <q-card-section class="q-pt-none">
                 <q-tree v-if="values.areas.length"
                         :nodes="values.areas || []"
@@ -556,6 +577,7 @@
                         children-key="areas"
                         label-key="name"
                         :no-transition="true"
+                        :filter="filterCity"
                     >
                         <template v-slot:default-header="prop">
                             <div class="row items-center">
