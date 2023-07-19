@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
-import { mdiDotsHorizontal, mdiClose, mdiPencil, mdiEye, mdiPlusCircleOutline, mdiMinusCircleOutline } from '@quasar/extras/mdi-v6'
+import { mdiDotsHorizontal, mdiClose, mdiPencil, mdiEye, mdiPlusCircleOutline, mdiMinusCircleOutline, mdiPackageUp, mdiPackageDown } from '@quasar/extras/mdi-v6'
 import AccountBase from './AccountBase.vue'
 import AppTooltip from '../components/AppTooltip.vue'
 import AppTableValue from '../components/AppTableValue.vue'
@@ -13,6 +13,7 @@ import { showSuccess, showError } from '../functions.js'
 const loading = ref(true)
 const hiddenColumns = ref([])
 const rows = ref([])
+const filter = ref({ status: '' })
 const box = ref(null)
 const { width } = useElementSize(box)
 const $q = useQuasar()
@@ -44,10 +45,10 @@ const visibleColumns = computed(() => {
     return visible
 })
 
-const getCompanies = function(name) {
+const getList = function(name) {
     loading.value = true
     
-    axios.post('company/list')
+    axios.post('company/list', { status: filter.value.status })
         .then((response) => {
             rows.value = response.data.data.data
             console.log(response.data.data.data)
@@ -70,8 +71,27 @@ const removeCompany = function(id, name) {
             .then((response) => {
                 console.log(response.data)
                 if (response.data.data.success) {
-                    getCompanies()
+                    getList()
                     showSuccess('Компания удалена')
+                } else {
+                    showError(response.data.data.message)
+                }
+            })
+            .catch((error) => showError(error))
+    })
+}
+
+const changeStatus = function(id, name, status) {
+    $q.dialog({
+        title: `${status == 'archived' ? 'Добавить в архив' : 'Восстановить'} компанию «${name || 'Без названия'}»?`,
+        cancel: 'Отмена',
+        persistent: true
+    }).onOk(() => {
+        axios.post('company/update', { id, status })
+            .then((response) => {
+                if (response.data.data.success) {
+                    getList()
+                    showSuccess(`Компания ${status == 'archived' ? 'в архиве' : 'восстановлена'}`)
                 } else {
                     showError(response.data.data.message)
                 }
@@ -96,7 +116,7 @@ const createVacancy = function(id) {
         .finally(() => loading.value = false)
 }
 
-getCompanies()
+getList()
 </script>
 
 <template>
@@ -104,6 +124,19 @@ getCompanies()
         <q-inner-loading :showing="loading" color="primary"/>
 
         <div class="box" ref="box">
+
+            <div class="row justify-between q-mb-md" >
+                <q-select
+                    v-model="filter.status"
+                    @update:model-value="getList()"
+                    :options="[{ label: 'Не в архиве', value: '' }, { label: 'Показать все', value: 'all' }]"
+                    emit-value
+                    map-options
+                    outlined
+                    class="col-12 col-sm-auto"
+                />
+            </div>
+
             <div v-if="!rows.length && !loading">
                 Нет организаций
             </div>
@@ -143,7 +176,8 @@ getCompanies()
                         <!-- Ячейка -->
                         <q-td v-for="col in props.cols" :key="col.name" :props="props">
                             <template v-if="col.name === 'name'">
-                                <router-link :to="`/account/company/${props.row.id}`" class="text-primary">
+                                <router-link :to="`/account/company/${props.row.id}`"
+                                    :class="props.row.status == 'archived' ? 'text-grey' : 'text-primary'">
                                     <b>{{ props.row.name }}</b>
                                     <app-tooltip>Вся информация об организации</app-tooltip>
                                 </router-link>
@@ -183,11 +217,22 @@ getCompanies()
                                         </q-item>
                                         <q-item :to="`/account/company/${props.row.id}`">
                                             <q-item-section avatar><q-icon :name="mdiPencil" size="14px" color="positive"/></q-item-section>
-                                            <q-item-section><q-item-label>Редактирование</q-item-label></q-item-section>
+                                            <q-item-section><q-item-label>Редактировать</q-item-label></q-item-section>
                                         </q-item>
-                                        <q-item clickable v-close-popup @click="removeCompany(props.row.id, props.row.name)">
+                                        <q-item v-if="props.row.status != 'archived'"
+                                            clickable v-close-popup @click="changeStatus(props.row.id, props.row.name, 'archived')">
+                                            <q-item-section avatar><q-icon :name="mdiPackageDown" size="14px"/></q-item-section>
+                                            <q-item-section><q-item-label>В архив</q-item-label></q-item-section>
+                                        </q-item>
+                                        <q-item v-if="props.row.status == 'archived'"
+                                            clickable v-close-popup @click="changeStatus(props.row.id, props.row.name, 'default')">
+                                            <q-item-section avatar><q-icon :name="mdiPackageUp" size="14px"/></q-item-section>
+                                            <q-item-section><q-item-label>Восстановить</q-item-label></q-item-section>
+                                        </q-item>
+                                        <q-item v-if="!props.row.vacancy_count"
+                                            clickable v-close-popup @click="removeCompany(props.row.id, props.row.name)">
                                             <q-item-section avatar><q-icon :name="mdiClose" size="14px" color="negative"/></q-item-section>
-                                            <q-item-section><q-item-label>Удаление</q-item-label></q-item-section>
+                                            <q-item-section><q-item-label>Удалить</q-item-label></q-item-section>
                                         </q-item>
                                     </q-list>
                                 </q-btn-dropdown>
@@ -269,11 +314,22 @@ getCompanies()
                                                         </q-item>
                                                         <q-item :to="`/account/company/${props.row.id}`">
                                                             <q-item-section avatar><q-icon :name="mdiPencil" size="14px" color="positive"/></q-item-section>
-                                                            <q-item-section><q-item-label>Редактирование</q-item-label></q-item-section>
+                                                            <q-item-section><q-item-label>Редактировать</q-item-label></q-item-section>
                                                         </q-item>
-                                                        <q-item clickable v-close-popup @click="removeCompany(props.row.id, props.row.name)">
+                                                        <q-item v-if="props.row.status != 'archived'"
+                                                            clickable v-close-popup @click="changeStatus(props.row.id, props.row.name, 'archived')">
+                                                            <q-item-section avatar><q-icon :name="mdiPackageDown" size="14px"/></q-item-section>
+                                                            <q-item-section><q-item-label>В архив</q-item-label></q-item-section>
+                                                        </q-item>
+                                                        <q-item v-if="props.row.status == 'archived'"
+                                                            clickable v-close-popup @click="changeStatus(props.row.id, props.row.name, 'default')">
+                                                            <q-item-section avatar><q-icon :name="mdiPackageUp" size="14px"/></q-item-section>
+                                                            <q-item-section><q-item-label>Восстановить</q-item-label></q-item-section>
+                                                        </q-item>
+                                                        <q-item v-if="!props.row.vacancy_count"
+                                                            clickable v-close-popup @click="removeCompany(props.row.id, props.row.name)">
                                                             <q-item-section avatar><q-icon :name="mdiClose" size="14px" color="negative"/></q-item-section>
-                                                            <q-item-section><q-item-label>Удаление</q-item-label></q-item-section>
+                                                            <q-item-section><q-item-label>Удалить</q-item-label></q-item-section>
                                                         </q-item>
                                                     </q-list>
                                                 </q-btn-dropdown>

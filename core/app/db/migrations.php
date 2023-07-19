@@ -30,6 +30,12 @@ if (!Capsule::schema()->hasTable('app_vacancys')) {
     });
 }
 
+Capsule::schema()->table('app_companys', function ($table) {
+    if (!Capsule::schema()->hasColumn('app_companys', 'status')) {
+        $table->string('status')->nullable();
+    }
+});
+
 // Capsule::schema()->table('app_vacancys', function ($table) {
 //     $table->string('name')->nullable()->change();
 //     $table->string('shedule')->nullable()->change();

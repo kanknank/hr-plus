@@ -17,6 +17,7 @@ $xpdo_meta_map['Company'] = [
 	],
 	'fields' => [
 		'name' => '',
+		'status' => null,
 		'brand' => null,
 		'logo' => null,
 		'address' => null,
@@ -36,6 +37,7 @@ $xpdo_meta_map['Company'] = [
 			'precision' => '255',
 			'phptype' => 'string',
 		],
+		'status' => $varchar,
 		'brand' => $varchar,
 		'logo' => $varchar,
 		'address' => $varchar,

@@ -79,8 +79,12 @@ class Company extends \Zoomx\Controllers\Controller
         //     $date = date_create($item['createdon']);
         //     $item['date'] = date_format($date, "d.m.Y");
         // }   
-
-        $data = \App\Models\Company::where('user', $this->modx->user->id)->get();
+        
+        $q = \App\Models\Company::where('user', $this->modx->user->id);
+        if (!isset($_POST['status']) || $_POST['status'] != 'all') {
+            $q->where(function ($q) { $q->where('status', '!=', 'archived')->orWhereNull('status'); });
+        }
+        $data = $q->get();
 
         return jsonx(['success' => true, 'data' => $data]);
     }
