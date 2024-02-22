@@ -2,8 +2,7 @@
 
 Бэк: modx + zoomx + eloquent orm
 
-core/config/example.config.inc.php    
-переименовать на config.inc.php, изменить параметры
+core/config/config.inc.php взять с любого modx сайта, поменять параметры       
 
 миграции (перенос таблиц в бд)    
 запустить в админке в console файл core/app/db/migrations.php    
