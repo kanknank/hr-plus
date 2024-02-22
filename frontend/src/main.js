@@ -1,5 +1,5 @@
 import './style.scss'
-import { createApp } from 'vue';
+import { createApp, ref } from 'vue';
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import { Quasar, Notify, AppFullscreen, Dialog } from 'quasar'
@@ -19,12 +19,21 @@ import AuthForgot from './pages/AuthForgot.vue'
 import AuthError from './pages/AuthError.vue'
 
 import AccountHome from './pages/AccountHome.vue'
-import AccountCompanies from './pages/AccountCompanies.vue'
+
+import Companies from './pages/Companies.vue'
 import AccountCompanyNew from './pages/AccountCompanyNew.vue'
 import AccountCompanyEdit from './pages/AccountCompanyEdit.vue'
+
 import AccountProfile from './pages/AccountProfile.vue'
 import AccountVacancyList from './pages/AccountVacancyList.vue'
 import AccountVacancyEdit from './pages/AccountVacancyEdit.vue'
+
+import EduCourses from './pages/EduCourses.vue'
+import EduCourseEdit from './pages/EduCourseEdit.vue'
+
+import { showSuccess, showError } from './functions.js'
+import { store } from './store.js'
+
 
 const routes = [
     { path: '/', redirect: '/auth/login' },
@@ -33,16 +42,24 @@ const routes = [
     { path: '/auth/forgot', component: AuthForgot, meta: { title: 'Забыли пароль?' } },
     { path: '/auth/error', component: AuthError, meta: { title: 'Ошибка' } },
 
-    { path: '/account', component: AccountHome, meta: { title: 'Личный кабинет' } },
-    { path: '/account/companies', component: AccountCompanies, meta: { title: 'Все организации' } },
-    { path: '/account/company/new', component: AccountCompanyNew, meta: { title: 'Добавить организацию' } },
-    { path: '/account/company/:id(\\d+)', component: AccountCompanyEdit, meta: { title: 'Огранизация' } },
-
     { path: '/account/profile', component: AccountProfile, meta: { title: 'Мой профиль' } },
+    { path: '/account', component: AccountHome, meta: { title: 'Личный кабинет' } },
 
-    { path: '/account/company/:company_id(\\d+)/vacancies', component: AccountVacancyList, meta: { title: 'Мои вакансии' } },
+    { path: '/company/new', component: AccountCompanyNew, meta: { title: 'Добавить организацию' } },
+    { path: '/company/:id(\\d+)', component: AccountCompanyEdit, meta: { title: 'Огранизация' } },
+    
+    { path: '/hr/companies', component: Companies, meta: { title: 'Все организации' } },
+    { path: '/hr/company/:company_id(\\d+)/vacancies', component: AccountVacancyList, meta: { title: 'Мои вакансии' } },
     //{ path: '/account/vacancy/new', component: AccountVacancyNew, meta: { title: 'Добавить вакансию' } },
-    { path: '/account/vacancy/:id(\\d+)/edit', component: AccountVacancyEdit, meta: { title: 'Вакансия' } },
+    { path: '/hr/vacancy/:id(\\d+)/edit', component: AccountVacancyEdit, meta: { title: 'Вакансия' } },
+
+    { path: '/edu/companies', component: Companies, meta: { title: 'Все организации' } },
+    { path: '/edu/company/:company(\\d+)/courses', component: EduCourses, meta: { title: 'Курсы' } },
+    { path: '/edu/company/:company(\\d+)/course/new', component: EduCourseEdit, meta: { title: 'Создать курс' } },
+    { path: '/edu/company/:company(\\d+)/course/:id(\\d+)/edit', component: EduCourseEdit, meta: { title: 'Редактировать курс' } },
+    // { path: '/account/companies', component: AccountCompanies, meta: { title: 'Все организации' } },
+    // { path: '/account/company/new', component: AccountCompanyNew, meta: { title: 'Добавить организацию' } },
+    // { path: '/account/company/:id(\\d+)', component: AccountCompanyEdit, meta: { title: 'Огранизация' } },
 ]
 
 const router = createRouter({
@@ -51,6 +68,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+    store.route = to
     if (to.meta.title) {
         document.title = to.meta.title + ' | HR PLUS'
     }

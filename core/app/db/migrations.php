@@ -2,6 +2,22 @@
 require_once __DIR__ . "/bootstrap.php";
 use Illuminate\Database\Capsule\Manager as Capsule;
 
+
+/** Course */
+if (!Capsule::schema()->hasTable('app_courses')) {
+    Capsule::schema()->create('app_courses', function ($table) {
+        $table->increments('id');
+        $table->string('name')->nullable();
+        $table->string('status')->nullable();
+        $table->mediumText('description')->nullable();
+        $table->integer('company_id')->unsigned()->nullable();
+        $table->integer('user_id')->unsigned()->nullable();
+        $table->timestamps();
+    });
+}
+
+
+/** Vacancy */
 if (!Capsule::schema()->hasTable('app_vacancys')) {
     Capsule::schema()->create('app_vacancys', function ($table) {
         $table->increments('id');
@@ -30,38 +46,10 @@ if (!Capsule::schema()->hasTable('app_vacancys')) {
     });
 }
 
+
+/** Company */
 Capsule::schema()->table('app_companys', function ($table) {
     if (!Capsule::schema()->hasColumn('app_companys', 'status')) {
         $table->string('status')->nullable();
     }
 });
-
-// Capsule::schema()->table('app_vacancys', function ($table) {
-//     $table->string('name')->nullable()->change();
-//     $table->string('shedule')->nullable()->change();
-
-//     if (!Capsule::schema()->hasColumn('app_vacancys', 'address')) {
-//         $table->json('address')->nullable();
-//     }
-
-//     if (!Capsule::schema()->hasColumn('app_vacancys', 'misc')) {
-//         $table->json('misc')->nullable();
-//     }
-// });
-
-//Capsule::schema()->hasTable('users1')
-//Capsule::schema()->hasColumn('users', 'id')
-
-// Capsule::schema()->create('todos', function ($table) {
-//     $table->increments('id');
-//     $table->string('todo');
-//     $table->string('description');
-//     $table->string('category');
-//     $table->integer('user_id')->unsigned();
-//     $table->timestamps();
-// });
-
-// Capsule::schema()->table('todos22', function ($table) {
-//     //$table->string('todo')->nullable()->change();
-//     $table->string('todo2')->nullable();
-// });

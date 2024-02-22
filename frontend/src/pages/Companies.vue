@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 import { mdiDotsHorizontal, mdiClose, mdiPencil, mdiEye, mdiPlusCircleOutline, mdiMinusCircleOutline, mdiPackageUp, mdiPackageDown } from '@quasar/extras/mdi-v6'
@@ -9,6 +9,7 @@ import AppTableValue from '../components/AppTableValue.vue'
 import { useElementSize } from '@vueuse/core'
 import { useQuasar } from 'quasar'
 import { showSuccess, showError } from '../functions.js'
+import { store } from '../store.js'
 
 const loading = ref(true)
 const hiddenColumns = ref([])
@@ -17,28 +18,47 @@ const filter = ref({ status: '' })
 const box = ref(null)
 const { width } = useElementSize(box)
 const $q = useQuasar()
+const route = useRoute()
 const router = useRouter()
 
-const tableColumns = [
-    { name: 'name', label: 'Наименование организации', field: 'name', align: 'left', sortable: true},
-    { name: 'inn', label: 'ИНН', field: 'inn', align: 'left', hideFrom: 1200, sortable: false },
-    { name: 'vacancy_count', label: 'Вакансии', field: 'vacancy_count', align: 'center', hideFrom: 900, sortable: false },
-    { name: 'users', label: 'Пользователи', field: 'users', align: 'center', hideFrom: 900, sortable: false },
-    { name: 'feedback', label: 'Отклики в работе', field: 'feedback', align: 'center', hideFrom: 900, sortable: false },
-    { name: 'author', label: 'Создатель аккаунта', field: 'author', align: 'left', hideFrom: 1050, sortable: false },
-    { name: 'createdon', label: 'Дата создания', field: 'createdon', align: 'left', hideFrom: 1300, sortable: false },
-    { name: 'action', label: 'Действие', field: 'action', hideFrom: 400, sortable: false },
-]
+const tableColumns = computed(() => {
+    console.log(store.route.path)
+    if (store.route.path.includes('/hr/')) {
+        return [
+            { name: 'name', label: 'Наименование организации', field: 'name', align: 'left', sortable: true},
+            { name: 'inn', label: 'ИНН', field: 'inn', align: 'left', hideFrom: 1200, sortable: false },
+            { name: 'vacancy_count', label: 'Вакансии', field: 'vacancy_count', align: 'center', hideFrom: 900, sortable: false },
+            { name: 'users', label: 'Пользователи', field: 'users', align: 'center', hideFrom: 900, sortable: false },
+            { name: 'feedback', label: 'Отклики в работе', field: 'feedback', align: 'center', hideFrom: 900, sortable: false },
+            { name: 'author', label: 'Создатель аккаунта', field: 'author', align: 'left', hideFrom: 1050, sortable: false },
+            { name: 'createdon', label: 'Дата создания', field: 'createdon', align: 'left', hideFrom: 1300, sortable: false },
+            { name: 'action', label: 'Действие', field: 'action', hideFrom: 400, sortable: false },
+        ]
+    }
+
+    if (store.route.path.includes('/edu/')) {
+        return [
+            { name: 'name', label: 'Наименование организации', field: 'name', align: 'left', sortable: true},
+            { name: 'inn', label: 'ИНН', field: 'inn', align: 'left', hideFrom: 1200, sortable: false },
+            { name: 'courses_count', label: 'Курсы', field: 'courses_count', align: 'center', hideFrom: 900, sortable: false },
+            { name: 'author', label: 'Создатель аккаунта', field: 'author', align: 'left', hideFrom: 1050, sortable: false },
+            { name: 'createdon', label: 'Дата создания', field: 'createdon', align: 'left', hideFrom: 1300, sortable: false },
+            { name: 'action', label: 'Действие', field: 'action', hideFrom: 400, sortable: false },
+        ]
+    }
+    
+    return []
+})
 
 const visibleColumns = computed(() => {
     const visible = []
     hiddenColumns.value = []
 
-    for (const col in tableColumns) {
-        if ((tableColumns[col].hideFrom || 0) < width.value) {
-            visible.push(tableColumns[col].name)
+    for (const col in tableColumns.value) {
+        if ((tableColumns.value[col].hideFrom || 0) < width.value) {
+            visible.push(tableColumns.value[col].name)
         } else {
-            hiddenColumns.value.push(tableColumns[col].name)
+            hiddenColumns.value.push(tableColumns.value[col].name)
         }
     }
 
@@ -58,7 +78,7 @@ const getList = function(name) {
 }
 
 const findColumn = function(name) {
-    return tableColumns.find(el => el.name === name);
+    return tableColumns.value.find(el => el.name === name);
 }
 
 const removeCompany = function(id, name) {
@@ -103,11 +123,11 @@ const changeStatus = function(id, name, status) {
 const createVacancy = function(id) {
     loading.value = true
     
-    axios.post('vacancy/new', { 'company_id': id })
+    axios.post('/hr/vacancy/new', { 'company_id': id })
         .then((response) => {
             if (response.data?.data?.success) {
                 console.log(response.data.data)
-                router.push(`/account/vacancy/${response.data.data.data.id}/edit`)
+                router.push(`/hr/vacancy/${response.data.data.data.id}/edit`)
             } else {
                 showError(response.data?.data?.message)
             }
@@ -116,7 +136,9 @@ const createVacancy = function(id) {
         .finally(() => loading.value = false)
 }
 
-getList()
+onMounted(() => {
+    getList()
+})
 </script>
 
 <template>
@@ -124,7 +146,7 @@ getList()
         <q-inner-loading :showing="loading" color="primary"/>
 
         <div class="box" ref="box">
-
+            {{ state }}
             <div class="row justify-between q-mb-md" >
                 <q-select
                     v-model="filter.status"
@@ -176,7 +198,7 @@ getList()
                         <!-- Ячейка -->
                         <q-td v-for="col in props.cols" :key="col.name" :props="props">
                             <template v-if="col.name === 'name'">
-                                <router-link :to="`/account/company/${props.row.id}`"
+                                <router-link :to="`/company/${props.row.id}`"
                                     :class="props.row.status == 'archived' ? 'text-grey' : 'text-primary'">
                                     <b>{{ props.row.name }}</b>
                                     <app-tooltip>Вся информация об организации</app-tooltip>
@@ -184,7 +206,7 @@ getList()
                             </template>
 
                             <template v-else-if="col.name === 'vacancy_count'">
-                                <router-link v-if="props.row.vacancy_count" :to="`/account/company/${props.row.id}/vacancies`">
+                                <router-link v-if="props.row.vacancy_count" :to="`/hr/company/${props.row.id}/vacancies`">
                                     <q-badge color="positive">
                                         {{ props.row.vacancy_count }}
                                         <app-tooltip class="bg-dark">Посмотреть все вакансии организации</app-tooltip>
@@ -211,11 +233,11 @@ getList()
                                     padding="6px" no-icon-animation 
                                 >
                                     <q-list class="comp-table__menu">
-                                        <q-item :to="`/account/company/${props.row.id}?tab=view`">
+                                        <q-item :to="`/hr/company/${props.row.id}?tab=view`">
                                             <q-item-section avatar><q-icon :name="mdiEye" size="14px" color="secondary"/></q-item-section>
                                             <q-item-section><q-item-label>Просмотр</q-item-label> </q-item-section>
                                         </q-item>
-                                        <q-item :to="`/account/company/${props.row.id}`">
+                                        <q-item :to="`/hr/company/${props.row.id}`">
                                             <q-item-section avatar><q-icon :name="mdiPencil" size="14px" color="positive"/></q-item-section>
                                             <q-item-section><q-item-label>Редактировать</q-item-label></q-item-section>
                                         </q-item>
@@ -267,7 +289,7 @@ getList()
 
                                         <div>
                                             <template v-if="i === 'vacancy_count'">
-                                                <router-link v-if="props.row.vacancy_count" :to="`/account/company/${props.row.id}/vacancies`">
+                                                <router-link v-if="props.row.vacancy_count" :to="`/hr/company/${props.row.id}/vacancies`">
                                                     <q-badge color="positive">
                                                         {{ props.row.vacancy_count }}
                                                         <app-tooltip class="bg-dark">Посмотреть все вакансии организации</app-tooltip>
@@ -308,11 +330,11 @@ getList()
                                                     padding="6px" no-icon-animation 
                                                 >
                                                     <q-list class="comp-table__menu">
-                                                        <q-item :to="`/account/company/${props.row.id}?tab=view`">
+                                                        <q-item :to="`/company/${props.row.id}?tab=view`">
                                                             <q-item-section avatar><q-icon :name="mdiEye" size="14px" color="secondary"/></q-item-section>
                                                             <q-item-section><q-item-label>Просмотр</q-item-label> </q-item-section>
                                                         </q-item>
-                                                        <q-item :to="`/account/company/${props.row.id}`">
+                                                        <q-item :to="`/company/${props.row.id}/edit`">
                                                             <q-item-section avatar><q-icon :name="mdiPencil" size="14px" color="positive"/></q-item-section>
                                                             <q-item-section><q-item-label>Редактировать</q-item-label></q-item-section>
                                                         </q-item>

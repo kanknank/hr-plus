@@ -49,6 +49,8 @@
     }
 
     const getFiles = function() {
+        console.log(pond.value.getFiles())
+
         const out = []
         const files = pond.value.getFiles() || []
 

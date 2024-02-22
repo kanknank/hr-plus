@@ -5,15 +5,19 @@ import { useRoute, useRouter } from 'vue-router'
 import { mdiMenuDown, mdiMenu, mdiFullscreen,  mdiFullscreenExit, mdiAccountOutline, mdiAccountDetails, mdiExitToApp, mdiChevronRight, mdiChevronDown } from '@quasar/extras/mdi-v6'
 import { useQuasar } from 'quasar'
 import { showSuccess, showError } from '../functions.js'
+import { store } from '../store.js'
 
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
-const title = ref('')
 const user = ref({})
 const year = new Date().getFullYear()
 const siteUrl = import.meta.env.VITE_API_URL
+
+const title = computed(() => {
+    return store.route.meta.title || ''
+})
 
 const logout = function () {
     axios.get('auth/logout')
@@ -31,7 +35,6 @@ const logout = function () {
 
 onMounted(async () => {
     await router.isReady()
-    title.value = route.meta.title || ''
 
     let userFromStorage = sessionStorage.user;
     try {
@@ -76,30 +79,41 @@ const menu = [
         childPath: '/compan',
         children: [
             {
-                to: '/account/companies',
-                label: 'Все организации',
-            },
-            {
-                to: '/account/company/new',
+                to: '/company/new',
                 label: 'Добавить новую организацию',
             },
         ]
     },
-    // {
-    //     label: 'Вакансии',
-    //     icon: mdiAccountDetails,
-    //     childPath: '/vacancy',
-    //     children: [
-    //         {
-    //             to: '/account/vacancy/list',
-    //             label: 'Мои вакансии',
-    //         },
-    //         {
-    //             to: '/account/vacancy/new',
-    //             label: 'Добавить вакансию',
-    //         },
-    //     ]
-    // },
+    {
+        label: 'Вакансии',
+        icon: mdiAccountDetails,
+        childPath: '/hr/',
+        children: [
+            {
+                to: '/hr/companies',
+                label: 'Все организации',
+            },
+        ]
+    },
+    {
+        label: 'Обучение сотрудников',
+        icon: mdiAccountDetails,
+        childPath: '/edu/',
+        children: [
+            {
+                to: '/edu/companies',
+                label: 'Все организации',
+            },
+            // {
+            //     to: '/edu/courses',
+            //     label: 'Курсы'
+            // },
+            // {
+            //     to: '/edu/course',
+            //     label: 'Уроки',
+            // },
+        ]
+    },
     {
         label: 'Пользователь',
         icon: mdiAccountDetails,

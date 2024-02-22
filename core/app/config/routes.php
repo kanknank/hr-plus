@@ -46,6 +46,10 @@ $router->post('/api/profile/update', ['\App\Controllers\Profile', 'update']);
 $router->post('/api/profile/upload_files', ['\App\Controllers\Profile', 'upload_files']);
 $router->post('/api/profile/change_password', ['\App\Controllers\Profile', 'change_password']);
 
+$router->post('/api/courses', ['\App\Controllers\Course', 'list']);
+$router->get('/api/course/{id}', ['\App\Controllers\Course', 'get']);
+$router->post('/api/course/new', ['\App\Controllers\Course', 'new']);
+
 $router->get('/', function() use ($modx) {
     return viewx("base.tpl");
 });
